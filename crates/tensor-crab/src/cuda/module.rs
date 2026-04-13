@@ -41,12 +41,10 @@ impl CudaModule {
         })?;
 
         let mut raw: ffi::CUmodule = std::ptr::null_mut();
-        let result = unsafe {
-            ffi::cuModuleLoadData(&mut raw, ptx_cstr.as_ptr().cast())
-        };
-        CUresult::from_raw(result).into_result().map_err(|e| {
-            CudaError::ModuleLoad(format!("cuModuleLoadData failed: {e}"))
-        })?;
+        let result = unsafe { ffi::cuModuleLoadData(&mut raw, ptx_cstr.as_ptr().cast()) };
+        CUresult::from_raw(result)
+            .into_result()
+            .map_err(|e| CudaError::ModuleLoad(format!("cuModuleLoadData failed: {e}")))?;
 
         Ok(Self {
             raw,
@@ -60,15 +58,14 @@ impl CudaModule {
     /// Returns [`CudaError::ModuleLoad`] if the file is not found or cannot
     /// be compiled.
     pub fn from_file(path: &str, device: &Arc<CudaDevice>) -> CudaResult<Self> {
-        let path_cstr = CString::new(path).map_err(|_| {
-            CudaError::ModuleLoad("path contains interior NUL byte".to_string())
-        })?;
+        let path_cstr = CString::new(path)
+            .map_err(|_| CudaError::ModuleLoad("path contains interior NUL byte".to_string()))?;
 
         let mut raw: ffi::CUmodule = std::ptr::null_mut();
         let result = unsafe { ffi::cuModuleLoad(&mut raw, path_cstr.as_ptr()) };
-        CUresult::from_raw(result).into_result().map_err(|e| {
-            CudaError::ModuleLoad(format!("cuModuleLoad('{path}') failed: {e}"))
-        })?;
+        CUresult::from_raw(result)
+            .into_result()
+            .map_err(|e| CudaError::ModuleLoad(format!("cuModuleLoad('{path}') failed: {e}")))?;
 
         Ok(Self {
             raw,
@@ -85,16 +82,14 @@ impl CudaModule {
     /// Returns [`CudaError::FunctionNotFound`] if no function with that name
     /// exists in the module.
     pub fn function(&self, name: &str) -> CudaResult<CudaFunction<'_>> {
-        let name_cstr = CString::new(name)
-            .map_err(|_| CudaError::FunctionNotFound(name.to_string()))?;
+        let name_cstr =
+            CString::new(name).map_err(|_| CudaError::FunctionNotFound(name.to_string()))?;
 
         let mut func: ffi::CUfunction = std::ptr::null_mut();
-        let result = unsafe {
-            ffi::cuModuleGetFunction(&mut func, self.raw, name_cstr.as_ptr())
-        };
-        CUresult::from_raw(result).into_result().map_err(|_| {
-            CudaError::FunctionNotFound(name.to_string())
-        })?;
+        let result = unsafe { ffi::cuModuleGetFunction(&mut func, self.raw, name_cstr.as_ptr()) };
+        CUresult::from_raw(result)
+            .into_result()
+            .map_err(|_| CudaError::FunctionNotFound(name.to_string()))?;
 
         Ok(CudaFunction {
             raw: func,
@@ -178,9 +173,9 @@ impl<'m> CudaFunction<'m> {
             args.as_mut_ptr(),
             std::ptr::null_mut(),
         );
-        CUresult::from_raw(result).into_result().map_err(|e| {
-            CudaError::KernelLaunch(format!("cuLaunchKernel failed: {e}"))
-        })
+        CUresult::from_raw(result)
+            .into_result()
+            .map_err(|e| CudaError::KernelLaunch(format!("cuLaunchKernel failed: {e}")))
     }
 }
 

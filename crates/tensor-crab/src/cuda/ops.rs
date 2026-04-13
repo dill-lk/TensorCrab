@@ -164,56 +164,92 @@ impl CudaTensor {
     /// Returns [`CudaError::Internal`] on shape mismatch, or a
     /// [`CudaError::Driver`] / [`CudaError::KernelLaunch`] if the kernel fails.
     pub fn add(&self, other: &CudaTensor) -> CudaResult<CudaTensor> {
-        self.binary_op(other, super::kernels::KERNEL_ADD_F32, super::kernels::PTX_BINARY_F32)
+        self.binary_op(
+            other,
+            super::kernels::KERNEL_ADD_F32,
+            super::kernels::PTX_BINARY_F32,
+        )
     }
 
     /// Element-wise subtraction: `self - other`.
     pub fn sub(&self, other: &CudaTensor) -> CudaResult<CudaTensor> {
-        self.binary_op(other, super::kernels::KERNEL_SUB_F32, super::kernels::PTX_BINARY_F32)
+        self.binary_op(
+            other,
+            super::kernels::KERNEL_SUB_F32,
+            super::kernels::PTX_BINARY_F32,
+        )
     }
 
     /// Element-wise multiplication: `self * other`.
     pub fn mul(&self, other: &CudaTensor) -> CudaResult<CudaTensor> {
-        self.binary_op(other, super::kernels::KERNEL_MUL_F32, super::kernels::PTX_BINARY_F32)
+        self.binary_op(
+            other,
+            super::kernels::KERNEL_MUL_F32,
+            super::kernels::PTX_BINARY_F32,
+        )
     }
 
     /// Element-wise division: `self / other`.
     pub fn div(&self, other: &CudaTensor) -> CudaResult<CudaTensor> {
-        self.binary_op(other, super::kernels::KERNEL_DIV_F32, super::kernels::PTX_BINARY_F32)
+        self.binary_op(
+            other,
+            super::kernels::KERNEL_DIV_F32,
+            super::kernels::PTX_BINARY_F32,
+        )
     }
 
     // ── Scalar operations ─────────────────────────────────────────────────────
 
     /// Adds a scalar constant to every element.
     pub fn add_scalar(&self, scalar: f32) -> CudaResult<CudaTensor> {
-        self.scalar_op(scalar, super::kernels::KERNEL_ADD_SCALAR_F32, super::kernels::PTX_SCALAR_BINARY_F32)
+        self.scalar_op(
+            scalar,
+            super::kernels::KERNEL_ADD_SCALAR_F32,
+            super::kernels::PTX_SCALAR_BINARY_F32,
+        )
     }
 
     /// Multiplies every element by a scalar constant.
     pub fn mul_scalar(&self, scalar: f32) -> CudaResult<CudaTensor> {
-        self.scalar_op(scalar, super::kernels::KERNEL_MUL_SCALAR_F32, super::kernels::PTX_SCALAR_BINARY_F32)
+        self.scalar_op(
+            scalar,
+            super::kernels::KERNEL_MUL_SCALAR_F32,
+            super::kernels::PTX_SCALAR_BINARY_F32,
+        )
     }
 
     // ── Unary operations ──────────────────────────────────────────────────────
 
     /// Applies ReLU element-wise: `max(0, x)`.
     pub fn relu(&self) -> CudaResult<CudaTensor> {
-        self.unary_op(super::kernels::KERNEL_RELU_F32, super::kernels::PTX_UNARY_F32)
+        self.unary_op(
+            super::kernels::KERNEL_RELU_F32,
+            super::kernels::PTX_UNARY_F32,
+        )
     }
 
     /// Negates every element: `-x`.
     pub fn neg(&self) -> CudaResult<CudaTensor> {
-        self.unary_op(super::kernels::KERNEL_NEG_F32, super::kernels::PTX_UNARY_F32)
+        self.unary_op(
+            super::kernels::KERNEL_NEG_F32,
+            super::kernels::PTX_UNARY_F32,
+        )
     }
 
     /// Takes the absolute value of every element: `|x|`.
     pub fn abs(&self) -> CudaResult<CudaTensor> {
-        self.unary_op(super::kernels::KERNEL_ABS_F32, super::kernels::PTX_UNARY_F32)
+        self.unary_op(
+            super::kernels::KERNEL_ABS_F32,
+            super::kernels::PTX_UNARY_F32,
+        )
     }
 
     /// Takes the square root of every element: `√x`.
     pub fn sqrt(&self) -> CudaResult<CudaTensor> {
-        self.unary_op(super::kernels::KERNEL_SQRT_F32, super::kernels::PTX_UNARY_F32)
+        self.unary_op(
+            super::kernels::KERNEL_SQRT_F32,
+            super::kernels::PTX_UNARY_F32,
+        )
     }
 
     /// Squares every element: `x²`.
@@ -223,12 +259,18 @@ impl CudaTensor {
 
     /// Applies `e^x` element-wise.
     pub fn exp(&self) -> CudaResult<CudaTensor> {
-        self.unary_op(super::kernels::KERNEL_EXP_F32, super::kernels::PTX_UNARY_F32)
+        self.unary_op(
+            super::kernels::KERNEL_EXP_F32,
+            super::kernels::PTX_UNARY_F32,
+        )
     }
 
     /// Applies `ln(x)` element-wise.
     pub fn log(&self) -> CudaResult<CudaTensor> {
-        self.unary_op(super::kernels::KERNEL_LOG_F32, super::kernels::PTX_UNARY_F32)
+        self.unary_op(
+            super::kernels::KERNEL_LOG_F32,
+            super::kernels::PTX_UNARY_F32,
+        )
     }
 
     // ── Shape manipulation ────────────────────────────────────────────────────
@@ -289,9 +331,7 @@ impl CudaTensor {
         ];
 
         let grid = grid_size_1d(n, DEFAULT_BLOCK_SIZE);
-        unsafe {
-            func.launch((grid, 1, 1), (DEFAULT_BLOCK_SIZE, 1, 1), 0, None, &mut args)
-        }?;
+        unsafe { func.launch((grid, 1, 1), (DEFAULT_BLOCK_SIZE, 1, 1), 0, None, &mut args) }?;
         self.device.synchronize()
     }
 
@@ -331,9 +371,7 @@ impl CudaTensor {
         ];
 
         let grid = grid_size_1d(n, DEFAULT_BLOCK_SIZE);
-        unsafe {
-            func.launch((grid, 1, 1), (DEFAULT_BLOCK_SIZE, 1, 1), 0, None, &mut args)
-        }?;
+        unsafe { func.launch((grid, 1, 1), (DEFAULT_BLOCK_SIZE, 1, 1), 0, None, &mut args) }?;
         self.device.synchronize()?;
 
         Ok(CudaTensor {
@@ -370,9 +408,7 @@ impl CudaTensor {
         ];
 
         let grid = grid_size_1d(n, DEFAULT_BLOCK_SIZE);
-        unsafe {
-            func.launch((grid, 1, 1), (DEFAULT_BLOCK_SIZE, 1, 1), 0, None, &mut args)
-        }?;
+        unsafe { func.launch((grid, 1, 1), (DEFAULT_BLOCK_SIZE, 1, 1), 0, None, &mut args) }?;
         self.device.synchronize()?;
 
         Ok(CudaTensor {
@@ -411,9 +447,7 @@ impl CudaTensor {
         ];
 
         let grid = grid_size_1d(n, DEFAULT_BLOCK_SIZE);
-        unsafe {
-            func.launch((grid, 1, 1), (DEFAULT_BLOCK_SIZE, 1, 1), 0, None, &mut args)
-        }?;
+        unsafe { func.launch((grid, 1, 1), (DEFAULT_BLOCK_SIZE, 1, 1), 0, None, &mut args) }?;
         self.device.synchronize()?;
 
         Ok(CudaTensor {
@@ -467,7 +501,7 @@ mod tests {
     #[test]
     fn test_shape_accessors() {
         // Verify that shape math is correct without touching the GPU.
-        let shape = vec![2usize, 3, 4];
+        let shape = [2usize, 3, 4];
         let numel: usize = shape.iter().product();
         assert_eq!(numel, 24);
     }
@@ -475,8 +509,8 @@ mod tests {
     #[test]
     fn test_reshape_numel_preserved() {
         // Reshape from [2, 3] to [6] — same number of elements.
-        let old_shape = vec![2usize, 3];
-        let new_shape = vec![6usize];
+        let old_shape = [2usize, 3];
+        let new_shape = [6usize];
         let old_numel: usize = old_shape.iter().product();
         let new_numel: usize = new_shape.iter().product();
         assert_eq!(old_numel, new_numel);

@@ -41,7 +41,6 @@ pub const PTX_BINARY_F32: &str = concat!(
     ".version 7.0\n",
     ".target sm_50\n",
     ".address_size 64\n",
-
     // ── tc_add_f32 ──────────────────────────────────────────────────────────
     ".visible .entry tc_add_f32(\n",
     "    .param .u64 param_out,\n",
@@ -75,7 +74,6 @@ pub const PTX_BINARY_F32: &str = concat!(
     "$done_add:\n",
     "    ret;\n",
     "}\n",
-
     // ── tc_sub_f32 ──────────────────────────────────────────────────────────
     ".visible .entry tc_sub_f32(\n",
     "    .param .u64 param_out,\n",
@@ -109,7 +107,6 @@ pub const PTX_BINARY_F32: &str = concat!(
     "$done_sub:\n",
     "    ret;\n",
     "}\n",
-
     // ── tc_mul_f32 ──────────────────────────────────────────────────────────
     ".visible .entry tc_mul_f32(\n",
     "    .param .u64 param_out,\n",
@@ -143,7 +140,6 @@ pub const PTX_BINARY_F32: &str = concat!(
     "$done_mul:\n",
     "    ret;\n",
     "}\n",
-
     // ── tc_div_f32 ──────────────────────────────────────────────────────────
     ".visible .entry tc_div_f32(\n",
     "    .param .u64 param_out,\n",
@@ -199,7 +195,6 @@ pub const PTX_UNARY_F32: &str = concat!(
     ".version 7.0\n",
     ".target sm_50\n",
     ".address_size 64\n",
-
     // ── tc_relu_f32 ─────────────────────────────────────────────────────────
     ".visible .entry tc_relu_f32(\n",
     "    .param .u64 param_out,\n",
@@ -223,14 +218,13 @@ pub const PTX_UNARY_F32: &str = concat!(
     "    mul.wide.u32 %rd4, %r3, 4;\n",
     "    add.u64 %rd5, %rd1, %rd4;\n",
     "    ld.global.f32 %f0, [%rd5];\n",
-    "    mov.f32 %f1, 0f00000000;\n",  // 0.0f
+    "    mov.f32 %f1, 0f00000000;\n", // 0.0f
     "    max.f32 %f2, %f0, %f1;\n",
     "    add.u64 %rd5, %rd0, %rd4;\n",
     "    st.global.f32 [%rd5], %f2;\n",
     "$done_relu:\n",
     "    ret;\n",
     "}\n",
-
     // ── tc_neg_f32 ──────────────────────────────────────────────────────────
     ".visible .entry tc_neg_f32(\n",
     "    .param .u64 param_out,\n",
@@ -260,7 +254,6 @@ pub const PTX_UNARY_F32: &str = concat!(
     "$done_neg:\n",
     "    ret;\n",
     "}\n",
-
     // ── tc_abs_f32 ──────────────────────────────────────────────────────────
     ".visible .entry tc_abs_f32(\n",
     "    .param .u64 param_out,\n",
@@ -290,7 +283,6 @@ pub const PTX_UNARY_F32: &str = concat!(
     "$done_abs:\n",
     "    ret;\n",
     "}\n",
-
     // ── tc_sqrt_f32 ─────────────────────────────────────────────────────────
     ".visible .entry tc_sqrt_f32(\n",
     "    .param .u64 param_out,\n",
@@ -320,7 +312,6 @@ pub const PTX_UNARY_F32: &str = concat!(
     "$done_sqrt:\n",
     "    ret;\n",
     "}\n",
-
     // ── tc_sq_f32 (x²) ──────────────────────────────────────────────────────
     ".visible .entry tc_sq_f32(\n",
     "    .param .u64 param_out,\n",
@@ -350,7 +341,6 @@ pub const PTX_UNARY_F32: &str = concat!(
     "$done_sq:\n",
     "    ret;\n",
     "}\n",
-
     // ── tc_exp_f32 ──────────────────────────────────────────────────────────
     ".visible .entry tc_exp_f32(\n",
     "    .param .u64 param_out,\n",
@@ -374,7 +364,7 @@ pub const PTX_UNARY_F32: &str = concat!(
     "    mul.wide.u32 %rd4, %r3, 4;\n",
     "    add.u64 %rd5, %rd1, %rd4;\n",
     "    ld.global.f32 %f0, [%rd5];\n",
-    "    ex2.approx.f32 %f1, %f0;\n",  // 2^x approximation; use for exp via log2(e)*x
+    "    ex2.approx.f32 %f1, %f0;\n", // 2^x approximation; use for exp via log2(e)*x
     // More accurately: ex2.approx.f32(x * log2(e))
     // For a real impl, use CUDA's __expf which compiles to ex2 with the conversion.
     // We emit the pattern that the compiler would produce.
@@ -383,7 +373,6 @@ pub const PTX_UNARY_F32: &str = concat!(
     "$done_exp:\n",
     "    ret;\n",
     "}\n",
-
     // ── tc_log_f32 ──────────────────────────────────────────────────────────
     ".visible .entry tc_log_f32(\n",
     "    .param .u64 param_out,\n",
@@ -407,10 +396,10 @@ pub const PTX_UNARY_F32: &str = concat!(
     "    mul.wide.u32 %rd4, %r3, 4;\n",
     "    add.u64 %rd5, %rd1, %rd4;\n",
     "    ld.global.f32 %f0, [%rd5];\n",
-    "    lg2.approx.f32 %f1, %f0;\n",  // log2(x)
+    "    lg2.approx.f32 %f1, %f0;\n", // log2(x)
     // Convert log2 → ln: ln(x) = log2(x) / log2(e) = log2(x) * ln(2)
     // ln(2) ≈ 0.693147180559945
-    "    mov.f32 %f2, 0f3F317218;\n",  // 0.693147f — ln(2)
+    "    mov.f32 %f2, 0f3F317218;\n", // 0.693147f — ln(2)
     "    mul.f32 %f1, %f1, %f2;\n",
     "    add.u64 %rd5, %rd0, %rd4;\n",
     "    st.global.f32 [%rd5], %f1;\n",
@@ -431,7 +420,6 @@ pub const PTX_FILL_F32: &str = concat!(
     ".version 7.0\n",
     ".target sm_50\n",
     ".address_size 64\n",
-
     ".visible .entry tc_fill_f32(\n",
     "    .param .u64 param_out,\n",
     "    .param .f32 param_val,\n",
@@ -472,7 +460,6 @@ pub const PTX_SCALAR_BINARY_F32: &str = concat!(
     ".version 7.0\n",
     ".target sm_50\n",
     ".address_size 64\n",
-
     // ── tc_add_scalar_f32 ────────────────────────────────────────────────────
     ".visible .entry tc_add_scalar_f32(\n",
     "    .param .u64 param_out,\n",
@@ -504,7 +491,6 @@ pub const PTX_SCALAR_BINARY_F32: &str = concat!(
     "$done_adds:\n",
     "    ret;\n",
     "}\n",
-
     // ── tc_mul_scalar_f32 ────────────────────────────────────────────────────
     ".visible .entry tc_mul_scalar_f32(\n",
     "    .param .u64 param_out,\n",

@@ -114,9 +114,7 @@ impl CudaDevice {
 
         // Obtain the device handle.
         let mut device: ffi::CUdevice = 0;
-        unsafe {
-            CUresult::from_raw(ffi::cuDeviceGet(&mut device, ordinal)).into_result()
-        }?;
+        unsafe { CUresult::from_raw(ffi::cuDeviceGet(&mut device, ordinal)).into_result() }?;
 
         // Query properties.
         let props = Self::query_properties(device)?;
@@ -125,7 +123,11 @@ impl CudaDevice {
         let mut ctx: ffi::CUcontext = std::ptr::null_mut();
         unsafe { CUresult::from_raw(ffi::cuCtxCreate(&mut ctx, 0, device)).into_result() }?;
 
-        Ok(Self { ordinal, ctx, props })
+        Ok(Self {
+            ordinal,
+            ctx,
+            props,
+        })
     }
 
     /// Returns the number of CUDA-capable devices on this machine.
@@ -221,12 +223,7 @@ impl CudaDevice {
         // Device name.
         let mut name_buf = [0i8; 256];
         unsafe {
-            CUresult::from_raw(ffi::cuDeviceGetName(
-                name_buf.as_mut_ptr(),
-                256,
-                dev,
-            ))
-            .into_result()
+            CUresult::from_raw(ffi::cuDeviceGetName(name_buf.as_mut_ptr(), 256, dev)).into_result()
         }?;
         let name = unsafe { CStr::from_ptr(name_buf.as_ptr() as *const c_char) }
             .to_string_lossy()
@@ -234,17 +231,13 @@ impl CudaDevice {
 
         // Total memory.
         let mut total_memory: usize = 0;
-        unsafe {
-            CUresult::from_raw(ffi::cuDeviceTotalMem(&mut total_memory, dev)).into_result()
-        }?;
+        unsafe { CUresult::from_raw(ffi::cuDeviceTotalMem(&mut total_memory, dev)).into_result() }?;
 
         // Attributes.
         let compute_major = query_attr(dev, ffi::CUdevice_attribute::ComputeCapabilityMajor)?;
         let compute_minor = query_attr(dev, ffi::CUdevice_attribute::ComputeCapabilityMinor)?;
-        let multiprocessor_count =
-            query_attr(dev, ffi::CUdevice_attribute::MultiprocessorCount)?;
-        let max_threads_per_block =
-            query_attr(dev, ffi::CUdevice_attribute::MaxThreadsPerBlock)?;
+        let multiprocessor_count = query_attr(dev, ffi::CUdevice_attribute::MultiprocessorCount)?;
+        let max_threads_per_block = query_attr(dev, ffi::CUdevice_attribute::MaxThreadsPerBlock)?;
         let warp_size = query_attr(dev, ffi::CUdevice_attribute::WarpSize)?;
         let memory_clock_rate_khz = query_attr(dev, ffi::CUdevice_attribute::MemoryClockRate)?;
         let memory_bus_width = query_attr(dev, ffi::CUdevice_attribute::GlobalMemoryBusWidth)?;
@@ -305,8 +298,7 @@ impl std::fmt::Debug for CudaDevice {
 fn query_attr(dev: ffi::CUdevice, attr: ffi::CUdevice_attribute) -> CudaResult<i32> {
     let mut val: i32 = 0;
     unsafe {
-        CUresult::from_raw(ffi::cuDeviceGetAttribute(&mut val, attr as u32, dev))
-            .into_result()
+        CUresult::from_raw(ffi::cuDeviceGetAttribute(&mut val, attr as u32, dev)).into_result()
     }?;
     Ok(val)
 }
