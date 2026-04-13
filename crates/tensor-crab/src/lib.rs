@@ -73,6 +73,8 @@
 //! ```
 
 pub mod autograd;
+#[cfg(feature = "cuda")]
+pub mod cuda;
 pub mod error;
 pub mod nn;
 pub mod optim;

@@ -253,8 +253,6 @@ mod tests {
         use crate::autograd::{backward, Variable};
         use crate::nn::{loss, Linear, Module, Sequential};
         use crate::optim::{Optimizer, SGD};
-        use std::sync::Arc;
-
         let (x_tensor, y_tensor) = make_dataset(8);
         let model = Sequential::new(vec![Box::new(Linear::new(2, 1))]);
         let mut opt = SGD::new(model.parameters(), 0.01);
