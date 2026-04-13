@@ -31,7 +31,7 @@ use super::Module;
 /// dropout.set_training(false);
 /// let x = Variable::new(Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[3]), false);
 /// let y = dropout.forward(&x);
-/// assert_eq!(y.data.to_vec(), x.data.to_vec());
+/// assert_eq!(y.data().to_vec(), x.data().to_vec());
 /// ```
 pub struct Dropout {
     /// Probability of zeroing an element (0 ≤ p < 1).
@@ -74,7 +74,7 @@ impl Module for Dropout {
             return Arc::clone(input);
         }
 
-        let numel = input.data.numel();
+        let numel = input.data().numel();
         let scale = 1.0 / (1.0 - self.p);
 
         // Generate a binary mask: 1 with prob (1-p), 0 with prob p.
@@ -92,7 +92,7 @@ impl Module for Dropout {
                 .collect()
         };
 
-        let mask = Variable::new(Tensor::from_vec(mask_data, input.data.shape()), false);
+        let mask = Variable::new(Tensor::from_vec(mask_data, input.data().shape()), false);
         input.var_mul(&mask)
     }
 

@@ -56,7 +56,7 @@ fn kaiming_uniform(in_features: usize, out_features: usize, seed: u64) -> Tensor
 /// let layer = Linear::new(3, 2);
 /// let x = Variable::new(Tensor::randn_seeded(&[4, 3], 0), false);
 /// let y = layer.forward(&x);
-/// assert_eq!(y.data.shape(), &[4, 2]);
+/// assert_eq!(y.data().shape(), &[4, 2]);
 /// ```
 pub struct Linear {
     /// Weight matrix of shape `[out_features, in_features]`.

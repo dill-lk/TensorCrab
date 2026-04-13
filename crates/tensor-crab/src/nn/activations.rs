@@ -19,7 +19,7 @@ use super::Module;
 /// let relu = ReLU::new();
 /// let x = Variable::new(Tensor::from_vec(vec![-1.0_f32, 2.0], &[2]), false);
 /// let y = relu.forward(&x);
-/// assert_eq!(y.data.to_vec(), vec![0.0, 2.0]);
+/// assert_eq!(y.data().to_vec(), vec![0.0, 2.0]);
 /// ```
 pub struct ReLU;
 
@@ -60,7 +60,7 @@ impl Module for ReLU {
 /// let sigmoid = Sigmoid::new();
 /// let x = Variable::new(Tensor::from_vec(vec![0.0_f32], &[1]), false);
 /// let y = sigmoid.forward(&x);
-/// assert!((y.data.to_vec()[0] - 0.5).abs() < 1e-6);
+/// assert!((y.data().to_vec()[0] - 0.5).abs() < 1e-6);
 /// ```
 pub struct Sigmoid;
 
@@ -101,7 +101,7 @@ impl Module for Sigmoid {
 /// let tanh = Tanh::new();
 /// let x = Variable::new(Tensor::from_vec(vec![0.0_f32], &[1]), false);
 /// let y = tanh.forward(&x);
-/// assert!((y.data.to_vec()[0]).abs() < 1e-6);
+/// assert!((y.data().to_vec()[0]).abs() < 1e-6);
 /// ```
 pub struct Tanh;
 
@@ -147,7 +147,7 @@ impl Module for Tanh {
 /// let softmax = Softmax::new(0);
 /// let x = Variable::new(Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[3]), false);
 /// let y = softmax.forward(&x);
-/// let probs: f32 = y.data.to_vec().iter().sum();
+/// let probs: f32 = y.data().to_vec().iter().sum();
 /// assert!((probs - 1.0).abs() < 1e-5);
 /// ```
 pub struct Softmax {
@@ -166,8 +166,8 @@ impl Module for Softmax {
     fn forward(&self, input: &Arc<Variable>) -> Arc<Variable> {
         // Subtract the max along `dim` for numerical stability.
         // The max is treated as a constant (no gradient needed).
-        let max_val = input.data.max().to_vec()[0];
-        let max_tensor = Tensor::full(max_val, input.data.shape());
+        let max_val = input.data().max().to_vec()[0];
+        let max_tensor = Tensor::full(max_val, input.data().shape());
         let x_shifted = input.var_sub(&Variable::new(max_tensor, false));
 
         let exp_x = x_shifted.var_exp();

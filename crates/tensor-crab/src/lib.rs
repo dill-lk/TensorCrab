@@ -44,12 +44,38 @@
 //! ]);
 //! let x = Variable::new(Tensor::randn_seeded(&[3, 4], 0), false);
 //! let y = model.forward(&x);
-//! assert_eq!(y.data.shape(), &[3, 2]);
+//! assert_eq!(y.data().shape(), &[3, 2]);
+//! ```
+
+//! ## Quick Start — Optimizers
+//!
+//! ```rust
+//! use std::sync::Arc;
+//! use tensor_crab::tensor::Tensor;
+//! use tensor_crab::autograd::{Variable, backward};
+//! use tensor_crab::nn::{Module, Sequential, Linear, ReLU, loss};
+//! use tensor_crab::optim::{Optimizer, Adam};
+//!
+//! let model = Sequential::new(vec![
+//!     Box::new(Linear::new(4, 8)),
+//!     Box::new(ReLU::new()),
+//!     Box::new(Linear::new(8, 1)),
+//! ]);
+//! let mut opt = Adam::new(model.parameters(), 0.001);
+//!
+//! let x = Variable::new(Tensor::randn_seeded(&[2, 4], 0), false);
+//! let target = Variable::new(Tensor::zeros(&[2, 1]), false);
+//! let pred = model.forward(&x);
+//! let l = loss::mse_loss(&pred, &target);
+//! backward(&l);
+//! opt.step();
+//! opt.zero_grad();
 //! ```
 
 pub mod autograd;
 pub mod error;
 pub mod nn;
+pub mod optim;
 pub mod tensor;
 
 pub use error::TensorError;
@@ -59,6 +85,7 @@ pub use tensor::Tensor;
 pub mod prelude {
     pub use super::autograd::{backward, Variable};
     pub use super::nn::{Module, Sequential};
+    pub use super::optim::{Adam, AdamW, DataLoader, Optimizer, StepLR, SGD};
     pub use super::Tensor;
     pub use super::TensorError;
 }

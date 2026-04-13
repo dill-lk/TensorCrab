@@ -27,7 +27,7 @@ use super::Module;
 ///
 /// let x = Variable::new(Tensor::randn_seeded(&[3, 4], 0), false);
 /// let y = model.forward(&x);
-/// assert_eq!(y.data.shape(), &[3, 2]);
+/// assert_eq!(y.data().shape(), &[3, 2]);
 /// ```
 pub struct Sequential {
     /// The ordered list of modules.
@@ -93,12 +93,13 @@ impl Sequential {
         f.write_all(&(params.len() as u64).to_le_bytes())?;
 
         for param in &params {
-            let shape = param.data.shape();
+            let param_data = param.data();
+            let shape = param_data.shape();
             f.write_all(&(shape.len() as u32).to_le_bytes())?;
             for &d in shape {
                 f.write_all(&(d as u64).to_le_bytes())?;
             }
-            for v in param.data.to_vec() {
+            for v in param_data.to_vec() {
                 f.write_all(&v.to_le_bytes())?;
             }
         }
@@ -156,13 +157,13 @@ impl Sequential {
                 shape.push(u64::from_le_bytes(d_buf) as usize);
             }
 
-            if shape.as_slice() != current.data.shape() {
+            if shape.as_slice() != current.data().shape() {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
                     format!(
                         "shape mismatch for parameter {i}: file {:?}, model {:?}",
                         shape,
-                        current.data.shape()
+                        current.data().shape()
                     ),
                 ));
             }

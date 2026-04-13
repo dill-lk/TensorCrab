@@ -328,11 +328,11 @@ impl Variable {
     /// # Panics (from underlying Tensor)
     /// Panics if shapes are not broadcast-compatible.
     pub fn var_add(self: &Arc<Self>, other: &Arc<Self>) -> Arc<Self> {
-        let lhs_shape = self.data.shape().to_vec();
-        let rhs_shape = other.data.shape().to_vec();
+        let lhs_shape = self.data().shape().to_vec();
+        let rhs_shape = other.data().shape().to_vec();
         let output = self
-            .data
-            .add(&other.data)
+            .data()
+            .add(&other.data())
             .expect("Variable::var_add: shape mismatch");
         make_output(
             output,
@@ -346,11 +346,11 @@ impl Variable {
 
     /// Element-wise subtraction with broadcasting.
     pub fn var_sub(self: &Arc<Self>, other: &Arc<Self>) -> Arc<Self> {
-        let lhs_shape = self.data.shape().to_vec();
-        let rhs_shape = other.data.shape().to_vec();
+        let lhs_shape = self.data().shape().to_vec();
+        let rhs_shape = other.data().shape().to_vec();
         let output = self
-            .data
-            .sub(&other.data)
+            .data()
+            .sub(&other.data())
             .expect("Variable::var_sub: shape mismatch");
         make_output(
             output,
@@ -364,11 +364,11 @@ impl Variable {
 
     /// Element-wise multiplication with broadcasting.
     pub fn var_mul(self: &Arc<Self>, other: &Arc<Self>) -> Arc<Self> {
-        let lhs_data = self.data.clone();
-        let rhs_data = other.data.clone();
+        let lhs_data = self.data().clone();
+        let rhs_data = other.data().clone();
         let output = self
-            .data
-            .mul(&other.data)
+            .data()
+            .mul(&other.data())
             .expect("Variable::var_mul: shape mismatch");
         make_output(
             output,
@@ -381,11 +381,11 @@ impl Variable {
     /// implemented yet — both tensors must have the same shape.
     pub fn var_div(self: &Arc<Self>, other: &Arc<Self>) -> Arc<Self> {
         // dL/dx = grad / y,  dL/dy = -grad * x / y^2
-        let lhs_data = self.data.clone();
-        let rhs_data = other.data.clone();
+        let lhs_data = self.data().clone();
+        let rhs_data = other.data().clone();
         let output = self
-            .data
-            .div(&other.data)
+            .data()
+            .div(&other.data())
             .expect("Variable::var_div: shape mismatch");
 
         struct DivBackward {
@@ -422,11 +422,11 @@ impl Variable {
 
     /// 2-D matrix multiplication.
     pub fn var_matmul(self: &Arc<Self>, other: &Arc<Self>) -> Arc<Self> {
-        let lhs_data = self.data.clone();
-        let rhs_data = other.data.clone();
+        let lhs_data = self.data().clone();
+        let rhs_data = other.data().clone();
         let output = self
-            .data
-            .matmul(&other.data)
+            .data()
+            .matmul(&other.data())
             .expect("Variable::var_matmul: dimension mismatch");
         make_output(
             output,
@@ -437,14 +437,14 @@ impl Variable {
 
     /// Negation: `-x`.
     pub fn var_neg(self: &Arc<Self>) -> Arc<Self> {
-        let output = self.data.neg();
+        let output = self.data().neg();
         make_output(output, vec![Arc::clone(self)], Box::new(NegBackward))
     }
 
     /// ReLU activation: `max(0, x)`.
     pub fn var_relu(self: &Arc<Self>) -> Arc<Self> {
-        let input_data = self.data.clone();
-        let output = self.data.relu();
+        let input_data = self.data().clone();
+        let output = self.data().relu();
         make_output(
             output,
             vec![Arc::clone(self)],
@@ -454,7 +454,7 @@ impl Variable {
 
     /// Sigmoid activation: `1 / (1 + exp(-x))`.
     pub fn var_sigmoid(self: &Arc<Self>) -> Arc<Self> {
-        let output = self.data.sigmoid();
+        let output = self.data().sigmoid();
         let output_data = output.clone();
         make_output(
             output,
@@ -465,8 +465,8 @@ impl Variable {
 
     /// Natural logarithm: `ln(x)`.
     pub fn var_log(self: &Arc<Self>) -> Arc<Self> {
-        let input_data = self.data.clone();
-        let output = self.data.log();
+        let input_data = self.data().clone();
+        let output = self.data().log();
         make_output(
             output,
             vec![Arc::clone(self)],
@@ -476,7 +476,7 @@ impl Variable {
 
     /// Exponential: `e^x`.
     pub fn var_exp(self: &Arc<Self>) -> Arc<Self> {
-        let output = self.data.exp();
+        let output = self.data().exp();
         let output_data = output.clone();
         make_output(
             output,
@@ -490,8 +490,8 @@ impl Variable {
     /// The backward pass broadcasts the scalar gradient back to the original
     /// shape, so every element receives the same gradient.
     pub fn var_sum(self: &Arc<Self>) -> Arc<Self> {
-        let input_shape = self.data.shape().to_vec();
-        let output = self.data.sum();
+        let input_shape = self.data().shape().to_vec();
+        let output = self.data().sum();
         make_output(
             output,
             vec![Arc::clone(self)],
@@ -503,8 +503,8 @@ impl Variable {
     ///
     /// The backward pass broadcasts the gradient back along that axis.
     pub fn var_sum_keepdim(self: &Arc<Self>, axis: usize) -> Arc<Self> {
-        let input_shape = self.data.shape().to_vec();
-        let output = self.data.sum_axis_keepdim(axis);
+        let input_shape = self.data().shape().to_vec();
+        let output = self.data().sum_axis_keepdim(axis);
         make_output(
             output,
             vec![Arc::clone(self)],
@@ -518,7 +518,7 @@ impl Variable {
     /// Panics if the tensor is not 2-D.
     pub fn var_transpose(self: &Arc<Self>) -> Arc<Self> {
         let output = self
-            .data
+            .data()
             .transpose()
             .expect("Variable::var_transpose: tensor must be 2-D");
         make_output(output, vec![Arc::clone(self)], Box::new(TransposeBackward))
@@ -526,7 +526,7 @@ impl Variable {
 
     /// Hyperbolic tangent: `tanh(x)`.
     pub fn var_tanh(self: &Arc<Self>) -> Arc<Self> {
-        let output = self.data.tanh();
+        let output = self.data().tanh();
         let output_data = output.clone();
         make_output(
             output,
@@ -537,7 +537,7 @@ impl Variable {
 
     /// Square root: `√x`.
     pub fn var_sqrt(self: &Arc<Self>) -> Arc<Self> {
-        let output = self.data.sqrt();
+        let output = self.data().sqrt();
         let output_data = output.clone();
         make_output(
             output,
@@ -551,7 +551,7 @@ impl Variable {
     /// More efficient than `var_mul` with a constant Variable because it
     /// avoids tracking a second input through the graph.
     pub fn var_mul_scalar(self: &Arc<Self>, scalar: f32) -> Arc<Self> {
-        let output = self.data.mul_scalar(scalar);
+        let output = self.data().mul_scalar(scalar);
         make_output(
             output,
             vec![Arc::clone(self)],
@@ -561,7 +561,7 @@ impl Variable {
 
     /// Adds a constant scalar to every element.
     pub fn var_add_scalar(self: &Arc<Self>, scalar: f32) -> Arc<Self> {
-        let output = self.data.add_scalar(scalar);
+        let output = self.data().add_scalar(scalar);
         make_output(output, vec![Arc::clone(self)], Box::new(AddScalarBackward))
     }
 }

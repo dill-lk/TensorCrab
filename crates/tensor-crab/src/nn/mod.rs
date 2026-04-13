@@ -46,7 +46,7 @@
 //!
 //! let x = Variable::new(Tensor::randn_seeded(&[3, 4], 0), false);
 //! let y = model.forward(&x);
-//! assert_eq!(y.data.shape(), &[3, 2]);
+//! assert_eq!(y.data().shape(), &[3, 2]);
 //! ```
 
 pub mod activations;
@@ -253,7 +253,7 @@ mod tests {
         let linear = Linear::new(4, 8);
         let x = Variable::new(Tensor::randn_seeded(&[3, 4], 0), false);
         let y = linear.forward(&x);
-        assert_eq!(y.data.shape(), &[3, 8]);
+        assert_eq!(y.data().shape(), &[3, 8]);
     }
 
     #[test]
@@ -261,8 +261,8 @@ mod tests {
         let linear = Linear::new(3, 5);
         let params = linear.parameters();
         assert_eq!(params.len(), 2);
-        assert_eq!(params[0].data.shape(), &[5, 3]); // weight
-        assert_eq!(params[1].data.shape(), &[5]); // bias
+        assert_eq!(params[0].data().shape(), &[5, 3]); // weight
+        assert_eq!(params[1].data().shape(), &[5]); // bias
     }
 
     #[test]
@@ -281,8 +281,8 @@ mod tests {
     #[test]
     fn test_linear_kaiming_shape() {
         let linear = Linear::new_kaiming(4, 6);
-        assert_eq!(linear.weight.data.shape(), &[6, 4]);
-        assert_eq!(linear.bias.data.shape(), &[6]);
+        assert_eq!(linear.weight.data().shape(), &[6, 4]);
+        assert_eq!(linear.bias.data().shape(), &[6]);
     }
 
     // ── Activations ──────────────────────────────────────────────────────
@@ -292,7 +292,7 @@ mod tests {
         let relu = ReLU::new();
         let x = Variable::new(Tensor::from_vec(vec![-1.0_f32, 0.0, 2.0], &[3]), false);
         let y = relu.forward(&x);
-        assert_eq!(y.data.to_vec(), vec![0.0, 0.0, 2.0]);
+        assert_eq!(y.data().to_vec(), vec![0.0, 0.0, 2.0]);
     }
 
     #[test]
@@ -300,7 +300,7 @@ mod tests {
         let sig = Sigmoid::new();
         let x = Variable::new(Tensor::from_vec(vec![0.0_f32], &[1]), false);
         let y = sig.forward(&x);
-        assert_abs_diff_eq!(y.data.to_vec()[0], 0.5_f32, epsilon = 1e-6);
+        assert_abs_diff_eq!(y.data().to_vec()[0], 0.5_f32, epsilon = 1e-6);
     }
 
     #[test]
@@ -308,7 +308,7 @@ mod tests {
         let tanh = Tanh::new();
         let x = Variable::new(Tensor::from_vec(vec![0.0_f32], &[1]), false);
         let y = tanh.forward(&x);
-        assert_abs_diff_eq!(y.data.to_vec()[0], 0.0_f32, epsilon = 1e-6);
+        assert_abs_diff_eq!(y.data().to_vec()[0], 0.0_f32, epsilon = 1e-6);
     }
 
     #[test]
@@ -316,7 +316,7 @@ mod tests {
         let sm = Softmax::new(0);
         let x = Variable::new(Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[3]), false);
         let y = sm.forward(&x);
-        let sum: f32 = y.data.to_vec().iter().sum();
+        let sum: f32 = y.data().to_vec().iter().sum();
         assert_abs_diff_eq!(sum, 1.0_f32, epsilon = 1e-5);
     }
 
@@ -329,7 +329,7 @@ mod tests {
             false,
         );
         let y = sm.forward(&x);
-        let v = y.data.to_vec();
+        let v = y.data().to_vec();
         let row0_sum: f32 = v[0..3].iter().sum();
         let row1_sum: f32 = v[3..6].iter().sum();
         assert_abs_diff_eq!(row0_sum, 1.0_f32, epsilon = 1e-5);
@@ -347,7 +347,7 @@ mod tests {
         ]);
         let x = Variable::new(Tensor::randn_seeded(&[5, 4], 2), false);
         let y = model.forward(&x);
-        assert_eq!(y.data.shape(), &[5, 2]);
+        assert_eq!(y.data().shape(), &[5, 2]);
     }
 
     #[test]
@@ -394,7 +394,7 @@ mod tests {
         let pred = Variable::new(Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[3]), true);
         let target = Variable::new(Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[3]), false);
         let l = loss::mse_loss(&pred, &target);
-        assert_abs_diff_eq!(l.data.to_vec()[0], 0.0_f32, epsilon = 1e-6);
+        assert_abs_diff_eq!(l.data().to_vec()[0], 0.0_f32, epsilon = 1e-6);
     }
 
     #[test]
@@ -403,7 +403,7 @@ mod tests {
         let pred = Variable::new(Tensor::zeros(&[2]), true);
         let target = Variable::new(Tensor::ones(&[2]), false);
         let l = loss::mse_loss(&pred, &target);
-        assert_abs_diff_eq!(l.data.to_vec()[0], 1.0_f32, epsilon = 1e-6);
+        assert_abs_diff_eq!(l.data().to_vec()[0], 1.0_f32, epsilon = 1e-6);
     }
 
     #[test]
@@ -426,7 +426,7 @@ mod tests {
         let l = loss::bce_loss(&pred, &target);
         // loss should be close to 0
         assert!(
-            l.data.to_vec()[0] < 0.02,
+            l.data().to_vec()[0] < 0.02,
             "BCE with near-perfect preds should be low"
         );
     }
@@ -438,7 +438,7 @@ mod tests {
         let target = Variable::new(Tensor::from_vec(vec![0.0_f32, 1.0, 0.0], &[3]), false);
         let l = loss::cross_entropy_loss(&logits, &target);
         assert!(
-            l.data.to_vec()[0] < 0.2,
+            l.data().to_vec()[0] < 0.2,
             "CE loss should be low when correct class has high logit"
         );
     }
@@ -459,7 +459,7 @@ mod tests {
         let bn = BatchNorm1d::new(4);
         let x = Variable::new(Tensor::randn_seeded(&[8, 4], 10), false);
         let y = bn.forward(&x);
-        assert_eq!(y.data.shape(), &[8, 4]);
+        assert_eq!(y.data().shape(), &[8, 4]);
     }
 
     #[test]
@@ -470,7 +470,7 @@ mod tests {
         let data: Vec<f32> = (1..=8).map(|i| i as f32).collect();
         let x = Variable::new(Tensor::from_vec(data, &[8, 1]), false);
         let y = bn.forward(&x);
-        let v = y.data.to_vec();
+        let v = y.data().to_vec();
         let mean: f32 = v.iter().sum::<f32>() / v.len() as f32;
         assert_abs_diff_eq!(mean, 0.0_f32, epsilon = 1e-5);
     }
@@ -480,8 +480,8 @@ mod tests {
         let bn = BatchNorm1d::new(6);
         let params = bn.parameters();
         assert_eq!(params.len(), 2); // gamma, beta
-        assert_eq!(params[0].data.shape(), &[6]);
-        assert_eq!(params[1].data.shape(), &[6]);
+        assert_eq!(params[0].data().shape(), &[6]);
+        assert_eq!(params[1].data().shape(), &[6]);
     }
 
     #[test]
@@ -503,7 +503,7 @@ mod tests {
             false,
         );
         let y = bn.forward(&x_eval);
-        assert_eq!(y.data.shape(), &[2, 2]);
+        assert_eq!(y.data().shape(), &[2, 2]);
     }
 
     // ── Dropout ──────────────────────────────────────────────────────────
@@ -514,7 +514,7 @@ mod tests {
         dropout.set_training(false);
         let x = Variable::new(Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[3]), false);
         let y = dropout.forward(&x);
-        assert_eq!(y.data.to_vec(), x.data.to_vec());
+        assert_eq!(y.data().to_vec(), x.data().to_vec());
     }
 
     #[test]
@@ -524,7 +524,7 @@ mod tests {
         let data: Vec<f32> = vec![1.0_f32; 100];
         let x = Variable::new(Tensor::from_vec(data, &[100]), false);
         let y = dropout.forward(&x);
-        let zeroed = y.data.to_vec().iter().filter(|&&v| v == 0.0).count();
+        let zeroed = y.data().to_vec().iter().filter(|&&v| v == 0.0).count();
         assert!(zeroed > 10, "expected some zeroed elements, got {zeroed}");
         assert!(
             zeroed < 90,
@@ -540,7 +540,7 @@ mod tests {
         let y = dropout.forward(&x);
         // With p=0, scale=1/(1-0)=1.0, so output == input.
         assert_abs_diff_eq!(
-            y.data.to_vec().as_slice(),
+            y.data().to_vec().as_slice(),
             [2.0_f32, 2.0, 2.0].as_slice(),
             epsilon = 1e-6
         );
@@ -563,8 +563,8 @@ mod tests {
 
         assert_eq!(loaded.len(), original_params.len());
         for (loaded_t, param) in loaded.iter().zip(original_params.iter()) {
-            assert_eq!(loaded_t.shape(), param.data.shape());
-            for (a, b) in loaded_t.to_vec().iter().zip(param.data.to_vec().iter()) {
+            assert_eq!(loaded_t.shape(), param.data().shape());
+            for (a, b) in loaded_t.to_vec().iter().zip(param.data().to_vec().iter()) {
                 assert_abs_diff_eq!(a, b, epsilon = 1e-6);
             }
         }
@@ -589,7 +589,7 @@ mod tests {
 
         let pred = model.forward(&x);
         let l = loss::mse_loss(&pred, &target);
-        let loss_val = l.data.to_vec()[0];
+        let loss_val = l.data().to_vec()[0];
         backward(&l);
 
         // All parameters should have gradients after backward.

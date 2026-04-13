@@ -32,7 +32,7 @@ use super::Module;
 /// let bn = BatchNorm1d::new(4);
 /// let x = Variable::new(Tensor::randn_seeded(&[8, 4], 42), false);
 /// let y = bn.forward(&x);
-/// assert_eq!(y.data.shape(), &[8, 4]);
+/// assert_eq!(y.data().shape(), &[8, 4]);
 /// ```
 pub struct BatchNorm1d {
     /// Learnable scale parameter γ, shape `[num_features]`.
@@ -70,7 +70,7 @@ impl BatchNorm1d {
 
 impl Module for BatchNorm1d {
     fn forward(&self, input: &Arc<Variable>) -> Arc<Variable> {
-        let shape = input.data.shape().to_vec();
+        let shape = input.data().shape().to_vec();
         assert_eq!(
             shape.len(),
             2,
@@ -104,8 +104,8 @@ impl Module for BatchNorm1d {
 
             // Update running stats (outside the autograd graph).
             {
-                let batch_mean_vec = mean.data.to_vec();
-                let batch_var_vec = var.data.to_vec();
+                let batch_mean_vec = mean.data().to_vec();
+                let batch_var_vec = var.data().to_vec();
                 let m = self.momentum;
 
                 let mut rm = self

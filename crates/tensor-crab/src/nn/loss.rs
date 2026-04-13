@@ -27,10 +27,10 @@ use crate::tensor::Tensor;
 /// let pred = Variable::new(Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[3]), true);
 /// let target = Variable::new(Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[3]), false);
 /// let loss = mse_loss(&pred, &target);
-/// assert!((loss.data.to_vec()[0]).abs() < 1e-6);
+/// assert!((loss.data().to_vec()[0]).abs() < 1e-6);
 /// ```
 pub fn mse_loss(pred: &Arc<Variable>, target: &Arc<Variable>) -> Arc<Variable> {
-    let n = pred.data.numel() as f32;
+    let n = pred.data().numel() as f32;
     // diff = pred - target,  diff² summed, then divided by n
     let diff = pred.var_sub(target);
     let diff_sq = diff.var_mul(&diff);
@@ -58,20 +58,20 @@ pub fn mse_loss(pred: &Arc<Variable>, target: &Arc<Variable>) -> Arc<Variable> {
 /// let target = Variable::new(Tensor::from_vec(vec![1.0_f32, 0.0], &[2]), false);
 /// let loss = bce_loss(&pred, &target);
 /// // loss ≈ 0.105
-/// assert!(loss.data.to_vec()[0] < 0.2);
+/// assert!(loss.data().to_vec()[0] < 0.2);
 /// ```
 pub fn bce_loss(pred: &Arc<Variable>, target: &Arc<Variable>) -> Arc<Variable> {
-    let n = pred.data.numel() as f32;
+    let n = pred.data().numel() as f32;
 
     // log(pred)
     let log_pred = pred.var_log();
     // log(1 - pred)
-    let one = Variable::new(Tensor::ones(pred.data.shape()), false);
+    let one = Variable::new(Tensor::ones(pred.data().shape()), false);
     let one_minus_pred = one.var_sub(pred);
     let log_one_minus_pred = one_minus_pred.var_log();
 
     // target * log(pred) + (1 - target) * log(1 - pred)
-    let one_c = Variable::new(Tensor::ones(target.data.shape()), false);
+    let one_c = Variable::new(Tensor::ones(target.data().shape()), false);
     let one_minus_target = one_c.var_sub(target);
 
     let term1 = target.var_mul(&log_pred);
@@ -107,24 +107,24 @@ pub fn bce_loss(pred: &Arc<Variable>, target: &Arc<Variable>) -> Arc<Variable> {
 /// let target = Variable::new(Tensor::from_vec(vec![0.0_f32, 1.0, 0.0], &[3]), false);
 /// let loss = cross_entropy_loss(&logits, &target);
 /// // loss should be small (correct class has highest logit)
-/// assert!(loss.data.to_vec()[0] < 0.5);
+/// assert!(loss.data().to_vec()[0] < 0.5);
 /// ```
 pub fn cross_entropy_loss(pred: &Arc<Variable>, target: &Arc<Variable>) -> Arc<Variable> {
     // Numerically stable log-softmax:
     //   log_softmax(x) = x - max(x) - log(sum(exp(x - max(x))))
-    let max_val = pred.data.max().to_vec()[0];
-    let max_const = Variable::new(Tensor::full(max_val, pred.data.shape()), false);
+    let max_val = pred.data().max().to_vec()[0];
+    let max_const = Variable::new(Tensor::full(max_val, pred.data().shape()), false);
     let x_shifted = pred.var_sub(&max_const);
 
     let exp_x = x_shifted.var_exp();
-    let sum_exp = exp_x.var_sum_keepdim(pred.data.ndim() - 1);
+    let sum_exp = exp_x.var_sum_keepdim(pred.data().ndim() - 1);
     let log_sum_exp = sum_exp.var_log();
 
     // log_softmax = x_shifted - log_sum_exp  (broadcast)
     let log_softmax = x_shifted.var_sub(&log_sum_exp);
 
     // cross-entropy = -mean(sum(target * log_softmax, dim=-1))
-    let n = pred.data.numel() as f32;
+    let n = pred.data().numel() as f32;
     target
         .var_mul(&log_softmax)
         .var_sum()

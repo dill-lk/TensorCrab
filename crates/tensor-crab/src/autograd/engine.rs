@@ -12,7 +12,7 @@ use super::Variable;
 /// before propagation begins.
 ///
 /// # Panics
-/// Panics if `root.data.numel() != 1`.
+/// Panics if `root.data().numel() != 1`.
 ///
 /// # Example
 /// ```
@@ -31,10 +31,10 @@ use super::Variable;
 /// ```
 pub fn backward(root: &Arc<Variable>) {
     assert_eq!(
-        root.data.numel(),
+        root.data().numel(),
         1,
         "backward: root must be a scalar tensor (numel == 1), got shape {:?}",
-        root.data.shape()
+        root.data().shape()
     );
 
     // Seed the gradient of the root with 1.0.
@@ -173,7 +173,7 @@ mod tests {
             |x| {
                 let xv = Variable::new(x.clone(), false);
                 let yv = Variable::new(y_data.clone(), false);
-                xv.var_add(&yv).var_sum().data.to_vec()[0]
+                xv.var_add(&yv).var_sum().data().to_vec()[0]
             },
             &data,
             1e-4,
@@ -241,7 +241,7 @@ mod tests {
             |x| {
                 let xv = Variable::new(x.clone(), false);
                 let yv = Variable::new(y_data.clone(), false);
-                xv.var_mul(&yv).var_sum().data.to_vec()[0]
+                xv.var_mul(&yv).var_sum().data().to_vec()[0]
             },
             &x_data,
             1e-4,
@@ -271,7 +271,7 @@ mod tests {
             |x| {
                 let xv = Variable::new(x.clone(), false);
                 let yv = Variable::new(y_data.clone(), false);
-                xv.var_matmul(&yv).var_sum().data.to_vec()[0]
+                xv.var_matmul(&yv).var_sum().data().to_vec()[0]
             },
             &x_data,
             1e-3,
@@ -329,7 +329,7 @@ mod tests {
                 Variable::new(x.clone(), false)
                     .var_relu()
                     .var_sum()
-                    .data
+                    .data()
                     .to_vec()[0]
             },
             &data,
@@ -356,7 +356,7 @@ mod tests {
                 Variable::new(x.clone(), false)
                     .var_sigmoid()
                     .var_sum()
-                    .data
+                    .data()
                     .to_vec()[0]
             },
             &data,
@@ -383,7 +383,7 @@ mod tests {
                 Variable::new(x.clone(), false)
                     .var_log()
                     .var_sum()
-                    .data
+                    .data()
                     .to_vec()[0]
             },
             &data,
@@ -410,7 +410,7 @@ mod tests {
                 Variable::new(x.clone(), false)
                     .var_exp()
                     .var_sum()
-                    .data
+                    .data()
                     .to_vec()[0]
             },
             &data,
@@ -457,7 +457,7 @@ mod tests {
             |x| {
                 let xv = Variable::new(x.clone(), false);
                 let yv = Variable::new(y_data.clone(), false);
-                xv.var_add(&yv).var_mul(&xv).var_sum().data.to_vec()[0]
+                xv.var_add(&yv).var_mul(&xv).var_sum().data().to_vec()[0]
             },
             &x_data,
             1e-4,
@@ -513,7 +513,7 @@ mod tests {
                     .var_sigmoid()
                     .var_relu()
                     .var_sum()
-                    .data
+                    .data()
                     .to_vec()[0]
             },
             &data,
