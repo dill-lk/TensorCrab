@@ -4,6 +4,22 @@ version = "0.1.0"
 edition = "2021"
 description = "Rust-native ML library. No Python. No GIL. Just speed."
 license = "Apache-2.0"
+build = "build.rs"
+
+[features]
+## Enable NVIDIA CUDA GPU acceleration.
+##
+## Requires:
+## - An NVIDIA GPU with CUDA Compute Capability ≥ 5.0
+## - CUDA Toolkit installed (tested with CUDA 11.x / 12.x)
+## - `CUDA_PATH` or `CUDA_ROOT` environment variable set if CUDA is not in
+##   `/usr/local/cuda`
+##
+## Usage:
+## ```
+## cargo build --features cuda
+## ```
+cuda = []
 
 [dependencies]
 thiserror = "2.0"

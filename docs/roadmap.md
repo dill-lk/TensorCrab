@@ -114,10 +114,23 @@ let output = model.forward(&input);
 ## Stage 6 — GPU Acceleration (CUDA)
 **Goal:** Run operations on NVIDIA GPUs.
 
-- [ ] CUDA backend via `cuBLAS` and `cuDNN` bindings
-- [ ] Device abstraction: `Device::CPU` and `Device::CUDA(n)`
-- [ ] `.to(device)` method on Tensor and Model
-- [ ] Async kernel execution
+- [x] `cuda` feature flag and `build.rs` that locates the CUDA Toolkit
+- [x] Raw CUDA Driver API FFI bindings (`ffi.rs`) — `cuInit`, `cuMemAlloc`, `cuLaunchKernel`, events, streams, peer access
+- [x] Raw CUDA Runtime API FFI bindings — `cudaMalloc`, `cudaMemcpy`, device management
+- [x] `CudaDevice` — device enumeration, properties, context management, `is_available()`
+- [x] `DeviceProperties` — name, memory, compute capability, multiprocessor count
+- [x] `CudaStream` — RAII stream creation, synchronise, `is_done()`
+- [x] `CudaEvent` — RAII events, `record`, `elapsed_ms` timing
+- [x] `CudaBuffer<T>` — type-safe RAII GPU memory (alloc, free, H2D, D2H, D2D copies)
+- [x] `CudaModule` / `CudaFunction` — PTX JIT compilation and kernel function lookup
+- [x] `grid_size_1d` helper and `DEFAULT_BLOCK_SIZE` constant
+- [x] Embedded PTX kernels for `f32`: `add`, `sub`, `mul`, `div`, `relu`, `neg`, `abs`, `sqrt`, `sq`, `exp`, `log`, `fill`, `add_scalar`, `mul_scalar`
+- [x] `CudaTensor` — GPU-backed f32 tensor with `from_cpu` / `to_cpu` round-trips
+- [x] `CudaTensor` ops: `add`, `sub`, `mul`, `div`, `add_scalar`, `mul_scalar`, `relu`, `neg`, `abs`, `sqrt`, `square`, `exp`, `log`, `reshape`, `flatten`
+- [ ] Device abstraction: `Device::CPU` and `Device::CUDA(n)` on existing `Tensor`
+- [ ] `.to(device)` method on Tensor and Variable
+- [ ] Async kernel execution (streams wired to `CudaTensor` ops)
+- [ ] cuBLAS GEMM for `matmul`
 - [ ] Memory pooling for GPU tensors
 - [ ] Mixed precision (f16) support
 
@@ -156,6 +169,7 @@ let output = model.forward(&input);
 🟢 **Stage 2 complete** — Autograd Engine implemented with numerical gradient verification.
 🟢 **Stage 3 complete** — Neural Network Layers implemented.
 🟢 **Stage 4 complete** — Optimizers (SGD, Adam, AdamW), schedulers (StepLR, CosineAnnealing), and DataLoader implemented.
+🟡 **Stage 6 in progress** — CUDA backend started: `cuda` feature flag, raw FFI bindings (Driver + Runtime API), `CudaDevice`, `CudaStream`, `CudaEvent`, `CudaBuffer<T>`, PTX module/kernel loader, embedded PTX kernels for 14 f32 ops, and `CudaTensor` GPU tensor with element-wise operations. All compiles cleanly (zero clippy warnings) and existing 62 tests pass.
 
 ## Completion Tracker
 
@@ -168,5 +182,5 @@ let output = model.forward(&input);
 | Stage 3 — NN Layers | 🟢 Done | Claude |
 | Stage 4 — Optimizers | 🟢 Done | Claude |
 | Stage 5 — WASM | 🔴 Not started | — |
-| Stage 6 — CUDA | 🔴 Not started | — |
+| Stage 6 — CUDA GPU | 🟡 In progress | Claude |
 | Stage 7 — Ecosystem | 🔴 Not started | — |
