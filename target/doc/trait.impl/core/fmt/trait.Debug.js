@@ -1,0 +1,9 @@
+(function() {
+    const implementors = Object.fromEntries([["tensor_crab",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.1/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a> for <a class=\"enum\" href=\"tensor_crab/error/enum.TensorError.html\" title=\"enum tensor_crab::error::TensorError\">TensorError</a>",0],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.1/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a> for <a class=\"struct\" href=\"tensor_crab/tensor/shape/struct.Shape.html\" title=\"struct tensor_crab::tensor::shape::Shape\">Shape</a>",0],["impl&lt;T: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.1/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.1/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.1/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a> for <a class=\"struct\" href=\"tensor_crab/tensor/struct.Tensor.html\" title=\"struct tensor_crab::tensor::Tensor\">Tensor</a>&lt;T&gt;",0],["impl&lt;T: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.1/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.1/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a> for <a class=\"struct\" href=\"tensor_crab/tensor/data/struct.Storage.html\" title=\"struct tensor_crab::tensor::data::Storage\">Storage</a>&lt;T&gt;",0]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":59,"fragment_lengths":[1554]}

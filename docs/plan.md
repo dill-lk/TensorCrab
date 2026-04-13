@@ -10,10 +10,10 @@
 
 | Module | File(s) | Status |
 |---|---|---|
-| Storage | `src/tensor/data.rs` | 🔴 Not created |
-| Shape/Stride | `src/tensor/shape.rs` | 🔴 Not created |
-| Tensor struct | `src/tensor/mod.rs` | 🔴 Not created |
-| Tensor ops | `src/tensor/ops.rs` | 🔴 Not created |
+| Storage | `src/tensor/data.rs` | 🟢 Done |
+| Shape/Stride | `src/tensor/shape.rs` | 🟢 Done |
+| Tensor struct | `src/tensor/mod.rs` | 🟢 Done |
+| Tensor ops | `src/tensor/ops.rs` | 🟢 Done |
 | Variable | `src/autograd/variable.rs` | 🔴 Not created |
 | Compute graph | `src/autograd/graph.rs` | 🔴 Not created |
 | Backward pass | `src/autograd/backward.rs` | 🔴 Not created |

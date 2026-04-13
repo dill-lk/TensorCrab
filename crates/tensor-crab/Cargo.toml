@@ -1,0 +1,13 @@
+[package]
+name = "tensor-crab"
+version = "0.1.0"
+edition = "2021"
+description = "Rust-native ML library. No Python. No GIL. Just speed."
+license = "Apache-2.0"
+
+[dependencies]
+thiserror = "2.0"
+rand = { version = "0.8", features = ["small_rng"] }
+
+[dev-dependencies]
+approx = "0.5"

@@ -19,15 +19,15 @@ Stage 7 → Ecosystem             [The World]
 ## Stage 1 — Tensor Engine
 **Goal:** A working N-dimensional array type in Rust.
 
-- [ ] `Tensor<T>` struct with generic dtype (f32, f64)
-- [ ] Shape and stride system (row-major memory layout)
-- [ ] Basic ops: `add`, `sub`, `mul`, `div` (element-wise)
-- [ ] Matrix ops: `matmul`, `transpose`, `reshape`, `flatten`
-- [ ] Reduction ops: `sum`, `mean`, `max`, `min`
-- [ ] Broadcasting support
+- [x] `Tensor<T>` struct with generic dtype (f32, f64)
+- [x] Shape and stride system (row-major memory layout)
+- [x] Basic ops: `add`, `sub`, `mul`, `div` (element-wise)
+- [x] Matrix ops: `matmul`, `transpose`, `reshape`, `flatten`
+- [x] Reduction ops: `sum`, `mean`, `max`, `min`
+- [x] Broadcasting support
 - [ ] Indexing and slicing
-- [ ] `Display` trait for pretty printing
-- [ ] Unit tests for all ops
+- [x] `Display` trait for pretty printing
+- [x] Unit tests for all ops
 
 ### Milestone
 ```rust
@@ -160,7 +160,7 @@ let output = model.forward(&input);
 
 | Stage | Status | Last Updated By |
 |---|---|---|
-| Stage 1 — Tensor Engine | 🔴 Not started | — |
+| Stage 1 — Tensor Engine | 🟢 Done | Claude |
 | Stage 2 — Autograd | 🔴 Not started | — |
 | Stage 3 — NN Layers | 🔴 Not started | — |
 | Stage 4 — Optimizers | 🔴 Not started | — |
