@@ -25,8 +25,12 @@
 | Loss functions | `src/nn/loss.rs` | 🟢 Done |
 | BatchNorm1d | `src/nn/batchnorm.rs` | 🟢 Done |
 | Dropout | `src/nn/dropout.rs` | 🟢 Done |
-| SGD | `src/optim/sgd.rs` | 🔴 Not created |
-| Adam | `src/optim/adam.rs` | 🔴 Not created |
+| Optimizer trait | `src/optim/mod.rs` | 🟢 Done |
+| SGD | `src/optim/sgd.rs` | 🟢 Done |
+| Adam | `src/optim/adam.rs` | 🟢 Done |
+| AdamW | `src/optim/adamw.rs` | 🟢 Done |
+| Schedulers | `src/optim/scheduler.rs` | 🟢 Done |
+| DataLoader | `src/optim/dataloader.rs` | 🟢 Done |
 
 ---
 

@@ -89,13 +89,13 @@ let output = model.forward(&input);
 ## Stage 4 — Optimizers
 **Goal:** Train models by updating weights with gradient descent.
 
-- [ ] `Optimizer` trait
-- [ ] `SGD` — stochastic gradient descent with momentum
-- [ ] `Adam` — adaptive moment estimation
-- [ ] `AdamW` — Adam with weight decay
-- [ ] Learning rate schedulers: StepLR, CosineAnnealing
-- [ ] Training loop utilities
-- [ ] DataLoader abstraction (batching, shuffling)
+- [x] `Optimizer` trait
+- [x] `SGD` — stochastic gradient descent with momentum
+- [x] `Adam` — adaptive moment estimation
+- [x] `AdamW` — Adam with weight decay
+- [x] Learning rate schedulers: StepLR, CosineAnnealing
+- [x] Training loop utilities
+- [x] DataLoader abstraction (batching, shuffling)
 
 ---
 
@@ -154,7 +154,8 @@ let output = model.forward(&input);
 
 🟢 **Stage 1 complete** — Tensor Engine implemented and tested.
 🟢 **Stage 2 complete** — Autograd Engine implemented with numerical gradient verification.
-🟢 **Stage 3 complete** — Neural Network Layers implemented. Starting Stage 4 (Optimizers) next.
+🟢 **Stage 3 complete** — Neural Network Layers implemented.
+🟢 **Stage 4 complete** — Optimizers (SGD, Adam, AdamW), schedulers (StepLR, CosineAnnealing), and DataLoader implemented.
 
 ## Completion Tracker
 
@@ -165,7 +166,7 @@ let output = model.forward(&input);
 | Stage 1 — Tensor Engine | 🟢 Done | Claude |
 | Stage 2 — Autograd | 🟢 Done | Claude |
 | Stage 3 — NN Layers | 🟢 Done | Claude |
-| Stage 4 — Optimizers | 🔴 Not started | — |
+| Stage 4 — Optimizers | 🟢 Done | Claude |
 | Stage 5 — WASM | 🔴 Not started | — |
 | Stage 6 — CUDA | 🔴 Not started | — |
 | Stage 7 — Ecosystem | 🔴 Not started | — |

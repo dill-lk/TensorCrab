@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard};
 
 use crate::tensor::Tensor;
 
@@ -25,7 +25,11 @@ use super::graph::Node;
 /// ```
 pub struct Variable {
     /// The forward-pass data of this variable.
-    pub data: Tensor,
+    ///
+    /// Wrapped in an `RwLock` so that optimizer implementations can update
+    /// parameters in-place via [`Variable::set_data`] while allowing many
+    /// concurrent readers during the forward/backward pass.
+    data: RwLock<Tensor>,
 
     /// Whether gradients should be tracked for this variable.
     pub requires_grad: bool,
@@ -50,7 +54,7 @@ impl Variable {
     /// directly by the backward pass.
     pub fn new(data: Tensor, requires_grad: bool) -> Arc<Self> {
         Arc::new(Self {
-            data,
+            data: RwLock::new(data),
             requires_grad,
             grad: Mutex::new(None),
             grad_fn: None,
@@ -63,11 +67,63 @@ impl Variable {
     /// [`crate::autograd::ops`]).
     pub(crate) fn with_grad_fn(data: Tensor, requires_grad: bool, node: Arc<Node>) -> Arc<Self> {
         Arc::new(Self {
-            data,
+            data: RwLock::new(data),
             requires_grad,
             grad: Mutex::new(None),
             grad_fn: Some(node),
         })
+    }
+
+    /// Returns a read guard giving shared access to the forward-pass tensor.
+    ///
+    /// The guard implements [`std::ops::Deref`]`<Target = `[`Tensor`]`>`, so all
+    /// `Tensor` methods are available directly on it.  Multiple threads can hold
+    /// read guards concurrently; a write guard (from [`Variable::set_data`])
+    /// blocks until all readers have released their guards.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::autograd::Variable;
+    /// use tensor_crab::tensor::Tensor;
+    ///
+    /// let x = Variable::new(Tensor::from_vec(vec![1.0_f32, 2.0], &[2]), false);
+    /// assert_eq!(x.data().shape(), &[2]);
+    /// ```
+    pub fn data(&self) -> RwLockReadGuard<'_, Tensor> {
+        self.data.read().expect("Variable::data: rwlock poisoned")
+    }
+
+    /// Replaces the tensor data of this variable in-place.
+    ///
+    /// This is the mechanism through which optimizers update trainable
+    /// parameters after computing gradients.  It acquires an exclusive write
+    /// lock, so it blocks until all concurrent readers (e.g. forward-pass
+    /// threads) have released their read guards.
+    ///
+    /// In the typical sequential training loop
+    /// (forward → backward → `optimizer.step()`) there are no live read guards
+    /// when this is called.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::autograd::Variable;
+    /// use tensor_crab::tensor::Tensor;
+    ///
+    /// let x = Variable::new(Tensor::zeros(&[2]), true);
+    /// x.set_data(Tensor::from_vec(vec![1.0_f32, 2.0], &[2]));
+    /// assert_eq!(x.data().to_vec(), vec![1.0, 2.0]);
+    /// ```
+    pub fn set_data(&self, new_data: Tensor) {
+        *self
+            .data
+            .write()
+            .expect("Variable::set_data: rwlock poisoned") = new_data;
     }
 
     /// Returns a clone of the accumulated gradient tensor, if one exists.
