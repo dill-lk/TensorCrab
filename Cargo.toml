@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/tensor-crab"]
+resolver = "2"
