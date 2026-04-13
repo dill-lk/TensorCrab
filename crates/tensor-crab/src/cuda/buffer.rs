@@ -97,9 +97,7 @@ impl<T: Copy> CudaBuffer<T> {
         let buf = Self::uninitialized(len, device)?;
         if len > 0 {
             let byte_count = len * std::mem::size_of::<T>();
-            unsafe {
-                CUresult::from_raw(ffi::cuMemsetD8(buf.ptr, 0, byte_count)).into_result()
-            }?;
+            unsafe { CUresult::from_raw(ffi::cuMemsetD8(buf.ptr, 0, byte_count)).into_result() }?;
         }
         Ok(buf)
     }
@@ -136,16 +134,10 @@ impl<T: Copy> CudaBuffer<T> {
             return Ok(());
         }
         let byte_count = self.len * std::mem::size_of::<T>();
-        let result = unsafe {
-            ffi::cuMemcpyHtoD(
-                self.ptr,
-                data.as_ptr().cast(),
-                byte_count,
-            )
-        };
-        CUresult::from_raw(result).into_result().map_err(|e| {
-            CudaError::MemcpyFailed(format!("host→device copy failed: {e}"))
-        })
+        let result = unsafe { ffi::cuMemcpyHtoD(self.ptr, data.as_ptr().cast(), byte_count) };
+        CUresult::from_raw(result)
+            .into_result()
+            .map_err(|e| CudaError::MemcpyFailed(format!("host→device copy failed: {e}")))
     }
 
     /// Copies the buffer contents to a newly-allocated host `Vec<T>`.
@@ -162,20 +154,13 @@ impl<T: Copy> CudaBuffer<T> {
         // SAFETY: MaybeUninit<T> requires no initialisation.
         unsafe { out.set_len(self.len) };
         let byte_count = self.len * std::mem::size_of::<T>();
-        let result = unsafe {
-            ffi::cuMemcpyDtoH(
-                out.as_mut_ptr().cast(),
-                self.ptr,
-                byte_count,
-            )
-        };
-        CUresult::from_raw(result).into_result().map_err(|e| {
-            CudaError::MemcpyFailed(format!("device→host copy failed: {e}"))
-        })?;
+        let result = unsafe { ffi::cuMemcpyDtoH(out.as_mut_ptr().cast(), self.ptr, byte_count) };
+        CUresult::from_raw(result)
+            .into_result()
+            .map_err(|e| CudaError::MemcpyFailed(format!("device→host copy failed: {e}")))?;
         // SAFETY: cuMemcpyDtoH initialised every element in `out`.
-        let initialised = unsafe {
-            std::mem::transmute::<Vec<std::mem::MaybeUninit<T>>, Vec<T>>(out)
-        };
+        let initialised =
+            unsafe { std::mem::transmute::<Vec<std::mem::MaybeUninit<T>>, Vec<T>>(out) };
         Ok(initialised)
     }
 
@@ -194,9 +179,9 @@ impl<T: Copy> CudaBuffer<T> {
         }
         let byte_count = self.len * std::mem::size_of::<T>();
         let result = unsafe { ffi::cuMemcpyDtoD(self.ptr, src.ptr, byte_count) };
-        CUresult::from_raw(result).into_result().map_err(|e| {
-            CudaError::MemcpyFailed(format!("device→device copy failed: {e}"))
-        })
+        CUresult::from_raw(result)
+            .into_result()
+            .map_err(|e| CudaError::MemcpyFailed(format!("device→device copy failed: {e}")))
     }
 
     /// Returns the number of elements in this buffer.

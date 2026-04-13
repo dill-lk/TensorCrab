@@ -150,9 +150,7 @@ impl CudaEvent {
     /// Records this event on `stream`.  The event will be reached after all
     /// previously enqueued work on `stream` has completed.
     pub fn record(&self, stream: &CudaStream) -> CudaResult<()> {
-        unsafe {
-            CUresult::from_raw(ffi::cuEventRecord(self.raw, stream.raw())).into_result()
-        }
+        unsafe { CUresult::from_raw(ffi::cuEventRecord(self.raw, stream.raw())).into_result() }
     }
 
     /// Blocks the CPU until this event has been reached.
@@ -167,8 +165,7 @@ impl CudaEvent {
     pub fn elapsed_ms(&self, start: &CudaEvent) -> CudaResult<f32> {
         let mut ms: f32 = 0.0;
         unsafe {
-            CUresult::from_raw(ffi::cuEventElapsedTime(&mut ms, start.raw, self.raw))
-                .into_result()
+            CUresult::from_raw(ffi::cuEventElapsedTime(&mut ms, start.raw, self.raw)).into_result()
         }?;
         Ok(ms)
     }

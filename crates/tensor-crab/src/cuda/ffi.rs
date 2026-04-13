@@ -191,11 +191,7 @@ extern "C" {
     pub fn cuDeviceTotalMem(bytes: *mut usize, dev: CUdevice) -> CUresult;
 
     /// Returns information about a device attribute.
-    pub fn cuDeviceGetAttribute(
-        pi: *mut c_int,
-        attrib: c_uint,
-        dev: CUdevice,
-    ) -> CUresult;
+    pub fn cuDeviceGetAttribute(pi: *mut c_int, attrib: c_uint, dev: CUdevice) -> CUresult;
 
     // ── Context management ────────────────────────────────────────────────────
 

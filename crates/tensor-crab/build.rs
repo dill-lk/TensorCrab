@@ -38,10 +38,7 @@ fn link_cuda() {
     };
 
     for dir in lib_dirs {
-        println!(
-            "cargo:rustc-link-search=native={}/{dir}",
-            cuda_root
-        );
+        println!("cargo:rustc-link-search=native={}/{dir}", cuda_root);
     }
 
     // Link the CUDA Driver API (libcuda / cuda.lib) and Runtime API
