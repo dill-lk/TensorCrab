@@ -1,0 +1,26 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"       # triggers on v0.1.0, v1.2.3 etc
+
+jobs:
+  publish:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify tests pass
+        run: cargo test --all
+
+      - name: Verify clippy clean
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Publish to crates.io
+        run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
+        working-directory: crates/tensor-crab
