@@ -18,10 +18,13 @@
 | Compute graph | `src/autograd/graph.rs` | 🟢 Done |
 | Backward pass | `src/autograd/engine.rs` | 🟢 Done |
 | Autograd ops | `src/autograd/ops.rs` | 🟢 Done |
-| Module trait | `src/nn/mod.rs` | 🔴 Not created |
-| Linear layer | `src/nn/linear.rs` | 🔴 Not created |
-| Activations | `src/nn/activations.rs` | 🔴 Not created |
-| Loss functions | `src/nn/loss.rs` | 🔴 Not created |
+| Module trait | `src/nn/mod.rs` | 🟢 Done |
+| Linear layer | `src/nn/linear.rs` | 🟢 Done |
+| Activations | `src/nn/activations.rs` | 🟢 Done |
+| Sequential | `src/nn/sequential.rs` | 🟢 Done |
+| Loss functions | `src/nn/loss.rs` | 🟢 Done |
+| BatchNorm1d | `src/nn/batchnorm.rs` | 🟢 Done |
+| Dropout | `src/nn/dropout.rs` | 🟢 Done |
 | SGD | `src/optim/sgd.rs` | 🔴 Not created |
 | Adam | `src/optim/adam.rs` | 🔴 Not created |
 

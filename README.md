@@ -4,18 +4,27 @@
 
 TensorCrab is a Rust-native machine learning library — think PyTorch, but written entirely in Rust with zero Python overhead.
 
-> **Current Status:** 🟢 Stage 2 Complete — Autograd Engine implemented with numerical gradient tests. [See Roadmap](./docs/roadmap.md)
+> **Current Status:** 🟢 Stage 3 Complete — Neural Network Layers implemented. [See Roadmap](./docs/roadmap.md)
 
 ```rust
 use std::sync::Arc;
 use tensor_crab::tensor::Tensor;
 use tensor_crab::autograd::{Variable, backward};
+use tensor_crab::nn::{Module, Sequential, Linear, ReLU, loss};
 
-// Stage 2: Automatic Differentiation
-let x = Variable::new(Tensor::from_vec(vec![2.0_f32, 3.0], &[2]), true);
-let z = x.var_mul(&x).var_sum(); // z = sum(x²)
-backward(&z);
-println!("{:?}", x.grad().unwrap().to_vec()); // [4.0, 6.0]  (dz/dx = 2x)
+// Stage 3: Neural Network Layers
+let model = Sequential::new(vec![
+    Box::new(Linear::new(784, 128)),
+    Box::new(ReLU::new()),
+    Box::new(Linear::new(128, 10)),
+]);
+let x = Variable::new(Tensor::randn_seeded(&[32, 784], 0), false);
+let output = model.forward(&x);              // [32, 10]
+
+let target = Variable::new(Tensor::zeros(&[32, 10]), false);
+let l = loss::mse_loss(&output, &target);
+backward(&l);                                // gradients flow to all weights
+model.save_weights("model.bin").unwrap();
 ```
 
 ## Why TensorCrab?
@@ -33,7 +42,7 @@ println!("{:?}", x.grad().unwrap().to_vec()); // [4.0, 6.0]  (dz/dx = 2x)
 |---|---|
 | Tensor Engine | 🟢 Done |
 | Autograd | 🟢 Done |
-| NN Layers | 🔴 Not started |
+| NN Layers | 🟢 Done |
 | Optimizers | 🔴 Not started |
 | WASM | 🔴 Not started |
 | CUDA | 🔴 Not started |

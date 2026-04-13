@@ -544,6 +544,117 @@ impl Tensor<f32> {
 
         Tensor::from_vec(out_data, &out_shape)
     }
+
+    /// Applies the hyperbolic tangent element-wise.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![0.0_f32], &[1]);
+    /// assert!((a.tanh().to_vec()[0]).abs() < 1e-6);
+    /// ```
+    pub fn tanh(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| v.tanh()).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Applies the square root element-wise.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![4.0_f32, 9.0], &[2]);
+    /// assert_eq!(a.sqrt().to_vec(), vec![2.0, 3.0]);
+    /// ```
+    pub fn sqrt(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| v.sqrt()).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Clamps every element to the range `[min_val, max_val]`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![-1.0_f32, 0.5, 2.0], &[3]);
+    /// assert_eq!(a.clamp(0.0, 1.0).to_vec(), vec![0.0, 0.5, 1.0]);
+    /// ```
+    pub fn clamp(&self, min_val: f32, max_val: f32) -> Tensor<f32> {
+        let data: Vec<f32> = self
+            .to_vec()
+            .into_iter()
+            .map(|v| v.clamp(min_val, max_val))
+            .collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Broadcasts this tensor to `target_shape` by repeating elements along
+    /// any axis where `self.shape[axis] == 1`.
+    ///
+    /// The number of dimensions of `self` must be ≤ `target_shape.len()`.  Any
+    /// missing leading dimensions are treated as size 1 (NumPy-style padding).
+    ///
+    /// # Panics
+    /// Panics if a dimension of `self` is neither 1 nor equal to the
+    /// corresponding dimension of `target_shape`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[1, 3]);
+    /// let b = a.broadcast_to(&[4, 3]);
+    /// assert_eq!(b.shape(), &[4, 3]);
+    /// assert_eq!(b.to_vec()[3], 1.0); // second row same as first
+    /// ```
+    pub fn broadcast_to(&self, target_shape: &[usize]) -> Tensor<f32> {
+        let out_ndim = target_shape.len();
+        let in_ndim = self.shape.ndim();
+        assert!(
+            out_ndim >= in_ndim,
+            "broadcast_to: target ndim {out_ndim} < input ndim {in_ndim}"
+        );
+        let pad = out_ndim - in_ndim;
+        // Validate broadcast compatibility.
+        for (i, (&pi, &ti)) in self
+            .shape
+            .dims
+            .iter()
+            .zip(target_shape[pad..].iter())
+            .enumerate()
+        {
+            assert!(
+                pi == 1 || pi == ti,
+                "broadcast_to: cannot broadcast dim {i} from size {pi} to {ti}"
+            );
+        }
+        let numel: usize = target_shape.iter().product();
+        let mut data = Vec::with_capacity(numel);
+        for idx in super::IndexIterator::new(target_shape.to_vec()) {
+            // Map target index to source index, treating padded/size-1 dims as 0.
+            let src_idx: Vec<usize> = idx[pad..]
+                .iter()
+                .zip(self.shape.dims.iter())
+                .map(|(&oi, &ts)| if ts == 1 { 0 } else { oi })
+                .collect();
+            data.push(self.get_at(&src_idx));
+        }
+        Tensor::from_vec(data, target_shape)
+    }
+
+    /// Applies an element-wise power of 2 (`x²`).
+    ///
+    /// Equivalent to `self.mul(self)` but avoids creating a temporary Variable.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![2.0_f32, 3.0], &[2]);
+    /// assert_eq!(a.square().to_vec(), vec![4.0, 9.0]);
+    /// ```
+    pub fn square(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| v * v).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
 }
 
 // ─── Display ──────────────────────────────────────────────────────────────────

@@ -18,9 +18,15 @@
 /// | neg | z = −x | −grad | — |
 /// | relu | z = max(0,x) | grad * (x > 0) | — |
 /// | sigmoid | z = σ(x) | grad * z*(1−z) | — |
+/// | tanh | z = tanh(x) | grad * (1 − z²) | — |
 /// | log | z = ln(x) | grad / x | — |
 /// | exp | z = eˣ | grad * z | — |
+/// | sqrt | z = √x | grad / (2z) | — |
 /// | sum | z = Σ x | broadcast(grad → x.shape) | — |
+/// | sum_keepdim | z = Σ x (axis, keepdim) | broadcast(grad → x.shape) | — |
+/// | transpose | z = xᵀ | (grad)ᵀ | — |
+/// | mul_scalar | z = s * x | s * grad | — |
+/// | add_scalar | z = x + s | grad | — |
 use std::sync::Arc;
 
 use crate::tensor::Tensor;
@@ -233,6 +239,87 @@ impl BackwardFn for SumBackward {
     }
 }
 
+/// `SumKeepdimBackward`: broadcasts the gradient back along the reduced axis.
+struct SumKeepdimBackward {
+    input_shape: Vec<usize>,
+    #[allow(dead_code)]
+    axis: usize,
+}
+
+impl BackwardFn for SumKeepdimBackward {
+    fn backward(&self, grad_output: &Tensor) -> Vec<Tensor> {
+        // grad_output has the same shape as the forward output (size-1 along axis).
+        // Broadcast it back to the original input shape.
+        vec![grad_output.broadcast_to(&self.input_shape)]
+    }
+}
+
+/// `TransposeBackward`: transpose of the gradient.
+struct TransposeBackward;
+
+impl BackwardFn for TransposeBackward {
+    fn backward(&self, grad_output: &Tensor) -> Vec<Tensor> {
+        vec![grad_output
+            .transpose()
+            .expect("TransposeBackward: transpose failed")]
+    }
+}
+
+/// `TanhBackward`: saves the forward output `z = tanh(x)`.
+///
+/// dL/dx = grad * (1 − z²)
+struct TanhBackward {
+    output_data: Tensor,
+}
+
+impl BackwardFn for TanhBackward {
+    fn backward(&self, grad_output: &Tensor) -> Vec<Tensor> {
+        let z_sq = self.output_data.square();
+        let one_minus_z_sq = Tensor::ones(self.output_data.shape())
+            .sub(&z_sq)
+            .expect("TanhBackward: 1 - z² failed");
+        vec![grad_output
+            .mul(&one_minus_z_sq)
+            .expect("TanhBackward: grad * (1-z²) failed")]
+    }
+}
+
+/// `SqrtBackward`: saves the forward output `z = √x`.
+///
+/// dL/dx = grad / (2z)
+struct SqrtBackward {
+    output_data: Tensor,
+}
+
+impl BackwardFn for SqrtBackward {
+    fn backward(&self, grad_output: &Tensor) -> Vec<Tensor> {
+        let two_z = self.output_data.mul_scalar(2.0);
+        vec![grad_output
+            .div(&two_z)
+            .expect("SqrtBackward: grad / (2√x) failed")]
+    }
+}
+
+/// `MulScalarBackward`: gradient of `s * x` w.r.t. x is `s * grad`.
+struct MulScalarBackward {
+    scalar: f32,
+}
+
+impl BackwardFn for MulScalarBackward {
+    fn backward(&self, grad_output: &Tensor) -> Vec<Tensor> {
+        vec![grad_output.mul_scalar(self.scalar)]
+    }
+}
+
+/// `AddScalarBackward`: gradient passes through unchanged.
+struct AddScalarBackward;
+
+impl BackwardFn for AddScalarBackward {
+    fn backward(&self, grad_output: &Tensor) -> Vec<Tensor> {
+        vec![grad_output.clone()]
+    }
+}
+
 // ─── Variable ops ─────────────────────────────────────────────────────────────
 
 impl Variable {
@@ -410,5 +497,71 @@ impl Variable {
             vec![Arc::clone(self)],
             Box::new(SumBackward { input_shape }),
         )
+    }
+
+    /// Sums along `axis`, keeping that axis with size 1 in the output.
+    ///
+    /// The backward pass broadcasts the gradient back along that axis.
+    pub fn var_sum_keepdim(self: &Arc<Self>, axis: usize) -> Arc<Self> {
+        let input_shape = self.data.shape().to_vec();
+        let output = self.data.sum_axis_keepdim(axis);
+        make_output(
+            output,
+            vec![Arc::clone(self)],
+            Box::new(SumKeepdimBackward { input_shape, axis }),
+        )
+    }
+
+    /// Zero-copy transpose of a 2-D tensor.
+    ///
+    /// # Panics
+    /// Panics if the tensor is not 2-D.
+    pub fn var_transpose(self: &Arc<Self>) -> Arc<Self> {
+        let output = self
+            .data
+            .transpose()
+            .expect("Variable::var_transpose: tensor must be 2-D");
+        make_output(output, vec![Arc::clone(self)], Box::new(TransposeBackward))
+    }
+
+    /// Hyperbolic tangent: `tanh(x)`.
+    pub fn var_tanh(self: &Arc<Self>) -> Arc<Self> {
+        let output = self.data.tanh();
+        let output_data = output.clone();
+        make_output(
+            output,
+            vec![Arc::clone(self)],
+            Box::new(TanhBackward { output_data }),
+        )
+    }
+
+    /// Square root: `√x`.
+    pub fn var_sqrt(self: &Arc<Self>) -> Arc<Self> {
+        let output = self.data.sqrt();
+        let output_data = output.clone();
+        make_output(
+            output,
+            vec![Arc::clone(self)],
+            Box::new(SqrtBackward { output_data }),
+        )
+    }
+
+    /// Multiplies every element by a constant scalar.
+    ///
+    /// More efficient than `var_mul` with a constant Variable because it
+    /// avoids tracking a second input through the graph.
+    pub fn var_mul_scalar(self: &Arc<Self>, scalar: f32) -> Arc<Self> {
+        let output = self.data.mul_scalar(scalar);
+        make_output(
+            output,
+            vec![Arc::clone(self)],
+            Box::new(MulScalarBackward { scalar }),
+        )
+    }
+
+    /// Adds a constant scalar to every element.
+    pub fn var_add_scalar(self: &Arc<Self>, scalar: f32) -> Arc<Self> {
+        let output = self.data.add_scalar(scalar);
+        make_output(output, vec![Arc::clone(self)], Box::new(AddScalarBackward))
     }
 }

@@ -64,15 +64,15 @@ println!("{}", x.grad()); // [4.0, 6.0]
 ## Stage 3 — Neural Network Layers
 **Goal:** Composable building blocks for neural networks.
 
-- [ ] `Module` trait — defines `forward()` and `parameters()`
-- [ ] `Linear` layer (fully connected)
-- [ ] Activation functions: `ReLU`, `Sigmoid`, `Tanh`, `Softmax`
-- [ ] `Sequential` container
-- [ ] Loss functions: `MSELoss`, `CrossEntropyLoss`, `BCELoss`
-- [ ] Weight initialization: Xavier, Kaiming
-- [ ] `BatchNorm1d` layer
-- [ ] Dropout layer
-- [ ] Model save/load (serialize to binary)
+- [x] `Module` trait — defines `forward()` and `parameters()`
+- [x] `Linear` layer (fully connected)
+- [x] Activation functions: `ReLU`, `Sigmoid`, `Tanh`, `Softmax`
+- [x] `Sequential` container
+- [x] Loss functions: `MSELoss`, `CrossEntropyLoss`, `BCELoss`
+- [x] Weight initialization: Xavier, Kaiming
+- [x] `BatchNorm1d` layer
+- [x] Dropout layer
+- [x] Model save/load (serialize to binary)
 
 ### Milestone
 ```rust
@@ -153,7 +153,8 @@ let output = model.forward(&input);
 ## Current Status
 
 🟢 **Stage 1 complete** — Tensor Engine implemented and tested.
-🟢 **Stage 2 complete** — Autograd Engine implemented with numerical gradient verification. Starting Stage 3 (NN Layers) next.
+🟢 **Stage 2 complete** — Autograd Engine implemented with numerical gradient verification.
+🟢 **Stage 3 complete** — Neural Network Layers implemented. Starting Stage 4 (Optimizers) next.
 
 ## Completion Tracker
 
@@ -163,7 +164,7 @@ let output = model.forward(&input);
 |---|---|---|
 | Stage 1 — Tensor Engine | 🟢 Done | Claude |
 | Stage 2 — Autograd | 🟢 Done | Claude |
-| Stage 3 — NN Layers | 🔴 Not started | — |
+| Stage 3 — NN Layers | 🟢 Done | Claude |
 | Stage 4 — Optimizers | 🔴 Not started | — |
 | Stage 5 — WASM | 🔴 Not started | — |
 | Stage 6 — CUDA | 🔴 Not started | — |

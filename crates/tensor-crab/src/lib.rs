@@ -28,9 +28,28 @@
 //! let g = x.grad().unwrap();
 //! assert!((g.to_vec()[0] - 4.0).abs() < 1e-5);
 //! ```
+//!
+//! ## Quick Start — Neural Network
+//!
+//! ```rust
+//! use std::sync::Arc;
+//! use tensor_crab::tensor::Tensor;
+//! use tensor_crab::autograd::Variable;
+//! use tensor_crab::nn::{Module, Sequential, Linear, ReLU};
+//!
+//! let model = Sequential::new(vec![
+//!     Box::new(Linear::new(4, 8)),
+//!     Box::new(ReLU::new()),
+//!     Box::new(Linear::new(8, 2)),
+//! ]);
+//! let x = Variable::new(Tensor::randn_seeded(&[3, 4], 0), false);
+//! let y = model.forward(&x);
+//! assert_eq!(y.data.shape(), &[3, 2]);
+//! ```
 
 pub mod autograd;
 pub mod error;
+pub mod nn;
 pub mod tensor;
 
 pub use error::TensorError;
@@ -39,6 +58,7 @@ pub use tensor::Tensor;
 /// Convenience re-exports for common usage.
 pub mod prelude {
     pub use super::autograd::{backward, Variable};
+    pub use super::nn::{Module, Sequential};
     pub use super::Tensor;
     pub use super::TensorError;
 }
