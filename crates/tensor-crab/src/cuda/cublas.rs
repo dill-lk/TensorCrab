@@ -75,6 +75,7 @@ impl CublasHandle {
     ///
     /// # Errors
     /// Returns [`CudaError::Internal`] if `cublasSgemm` fails.
+    #[allow(clippy::too_many_arguments)]
     pub fn sgemm(
         &self,
         m: usize,

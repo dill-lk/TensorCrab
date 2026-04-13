@@ -265,7 +265,7 @@ mod tests {
 
     #[test]
     fn test_vec_conversion_roundtrip() {
-        let orig = vec![1.0_f32, -0.5, 3.14, 0.0, -100.0];
+        let orig = [1.0_f32, -0.5, std::f32::consts::PI, 0.0, -100.0];
         let f16s = vec_f32_to_f16(&orig);
         let back = vec_f16_to_f32(&f16s);
         for (a, b) in orig.iter().zip(back.iter()) {
