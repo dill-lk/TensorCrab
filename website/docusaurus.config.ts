@@ -2,8 +2,6 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
-// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
-
 const config: Config = {
   title: 'TensorCrab',
   tagline: 'A blazing-fast ML library written entirely in Rust. No Python. No GIL. No overhead.',
@@ -20,12 +18,24 @@ const config: Config = {
   projectName: 'TensorCrab',
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
   },
+
+  stylesheets: [
+    {
+      href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap',
+      type: 'text/css',
+    },
+  ],
 
   presets: [
     [
@@ -51,6 +61,7 @@ const config: Config = {
     },
     navbar: {
       title: 'TensorCrab 🦀',
+      hideOnScroll: false,
       items: [
         {
           type: 'docSidebar',
@@ -60,18 +71,24 @@ const config: Config = {
         },
         {
           to: '/docs/api/tensor',
-          label: 'API Reference',
+          label: 'API',
+          position: 'left',
+        },
+        {
+          to: '/docs/roadmap',
+          label: 'Roadmap',
           position: 'left',
         },
         {
           href: 'https://github.com/dill-lk/TensorCrab',
-          label: 'GitHub',
           position: 'right',
+          className: 'header-github-link',
+          'aria-label': 'GitHub repository',
         },
       ],
     },
     footer: {
-      style: 'dark',
+      style: 'light',
       links: [
         {
           title: 'Documentation',
@@ -104,7 +121,7 @@ const config: Config = {
       copyright: `Copyright © ${new Date().getFullYear()} TensorCrab. Built with Docusaurus.`,
     },
     prism: {
-      theme: prismThemes.github,
+      theme: prismThemes.oneLight,
       darkTheme: prismThemes.vsDark,
       additionalLanguages: ['rust', 'toml', 'bash'],
     },

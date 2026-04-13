@@ -1,50 +1,458 @@
 /**
- * TensorCrab documentation theme.
- * Primary palette: Rust orange — matching the Rust language brand.
+ * TensorCrab documentation — Tailwind CSS docs-inspired styling.
+ *
+ * Design tokens are lifted directly from tailwindcss.com:
+ *   - Inter for prose, IBM Plex Mono for code
+ *   - gray-950 dark background (oklch 0.13 0.028 261.692)
+ *   - sky-400 accent for links
+ *   - Tight prose: text-sm, line-height 2
+ *   - Diagonal "candy cane" gutter pattern
  */
 
+@import "tailwindcss";
+
+/* ─── Design tokens ─────────────────────────────────────────── */
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Fira Code", ui-monospace, monospace;
+
+  --color-surface-dark: oklch(0.13 0.028 261.692);
+  --color-accent: oklch(0.685 0.169 237.323); /* sky-400 */
+}
+
+/* ─── Infima overrides — match Tailwind docs palette ─────────── */
+
 :root {
-  --ifm-color-primary: #ce422b;
-  --ifm-color-primary-dark: #b93b26;
-  --ifm-color-primary-darker: #af3824;
-  --ifm-color-primary-darkest: #8f2e1d;
-  --ifm-color-primary-light: #d55540;
-  --ifm-color-primary-lighter: #d85f4b;
-  --ifm-color-primary-lightest: #de7a69;
-  --ifm-code-font-size: 93%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
-  --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+  /* sky-600 in light mode */
+  --ifm-color-primary: oklch(0.588 0.158 241.966);
+  --ifm-color-primary-dark: oklch(0.55 0.155 241);
+  --ifm-color-primary-darker: oklch(0.52 0.152 241);
+  --ifm-color-primary-darkest: oklch(0.47 0.148 241);
+  --ifm-color-primary-light: oklch(0.625 0.161 242);
+  --ifm-color-primary-lighter: oklch(0.645 0.162 242);
+  --ifm-color-primary-lightest: oklch(0.685 0.169 237.323);
+
+  --ifm-font-family-base: "Inter", system-ui, sans-serif;
+  --ifm-font-family-monospace: "IBM Plex Mono", "Fira Code", ui-monospace, monospace;
+  --ifm-code-font-size: 87.5%;
+  --ifm-font-size-base: 14px;
+  --ifm-line-height-base: 2;
+  --ifm-font-weight-base: 400;
+
+  --ifm-navbar-background-color: #fff;
+  --ifm-navbar-shadow: none;
+  --ifm-navbar-height: 56px;
+  --ifm-navbar-padding-horizontal: 1.5rem;
+
+  --ifm-sidebar-width: 272px;
+  --ifm-menu-color: #374151;
+  --ifm-menu-color-active: #030712;
+  --ifm-menu-link-padding-horizontal: 0.75rem;
+  --ifm-menu-link-padding-vertical: 0.25rem;
+
+  --ifm-background-color: #fff;
+  --ifm-background-surface-color: #f9fafb;
+  --ifm-color-content: #374151;
+  --ifm-color-content-secondary: #6b7280;
+  --ifm-heading-color: #030712;
+
+  --ifm-table-stripe-background: #f9fafb;
+  --ifm-table-border-color: #e5e7eb;
+
+  --ifm-hr-border-color: rgba(0, 0, 0, 0.05);
+
+  --ifm-toc-border-color: #e5e7eb;
+  --ifm-toc-link-color: #6b7280;
+
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.06);
+
+  --ifm-code-background: #f3f4f6;
+  --ifm-code-border-radius: 4px;
+
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-link-decoration: none;
+  --ifm-link-hover-decoration: underline;
+
+  --ifm-spacing-horizontal: 1.5rem;
 }
 
-[data-theme='dark'] {
-  --ifm-color-primary: #e8674f;
-  --ifm-color-primary-dark: #e35038;
-  --ifm-color-primary-darker: #e1452b;
-  --ifm-color-primary-darkest: #c3321b;
-  --ifm-color-primary-light: #ed7e67;
-  --ifm-color-primary-lighter: #ef8974;
-  --ifm-color-primary-lightest: #f4a596;
+[data-theme="dark"] {
+  /* sky-400 in dark mode */
+  --ifm-color-primary: oklch(0.685 0.169 237.323);
+  --ifm-color-primary-dark: oklch(0.645 0.162 237);
+  --ifm-color-primary-darker: oklch(0.62 0.158 237);
+  --ifm-color-primary-darkest: oklch(0.55 0.150 237);
+  --ifm-color-primary-light: oklch(0.72 0.174 237);
+  --ifm-color-primary-lighter: oklch(0.745 0.177 237);
+  --ifm-color-primary-lightest: oklch(0.785 0.18 237);
+
+  --ifm-background-color: oklch(0.13 0.028 261.692);
+  --ifm-background-surface-color: oklch(0.165 0.025 260);
+  --ifm-color-content: #d1d5db;
+  --ifm-color-content-secondary: #9ca3af;
+  --ifm-heading-color: #fff;
+
+  --ifm-navbar-background-color: oklch(0.13 0.028 261.692);
+
+  --ifm-menu-color: #d1d5db;
+  --ifm-menu-color-active: #fff;
+
+  --ifm-table-stripe-background: oklch(0.165 0.025 260);
+  --ifm-table-border-color: #374151;
+
+  --ifm-hr-border-color: rgba(255, 255, 255, 0.10);
+  --ifm-toc-border-color: #374151;
+  --ifm-toc-link-color: #9ca3af;
+
   --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.08);
-  --ifm-background-color: #13151a;
-  --ifm-background-surface-color: #1c1f26;
+
+  --ifm-code-background: oklch(0.185 0.025 260);
 }
 
-/* Hero banner */
-.hero--primary {
-  background: linear-gradient(135deg, #1c1f26 0%, #2a1810 100%);
+/* ─── Global typography ──────────────────────────────────────── */
+
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Feature cards */
-.features_src-components-HomepageFeatures-module {
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.025em;
+}
+
+/* Inline code — backtick style matching Tailwind docs */
+:not(pre) > code {
+  background: var(--ifm-code-background);
+  border: none;
+  padding: 0.1em 0.35em;
+  font-size: 0.875em;
+  border-radius: var(--ifm-code-border-radius);
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 500;
+  font-variant-ligatures: none;
+}
+
+/* Code blocks */
+pre {
+  border-radius: 8px;
+  font-size: 0.875rem;
+  line-height: 1.75;
+  border: none;
+}
+
+pre code {
+  font-variant-ligatures: none;
+}
+
+/* ─── Navbar ─────────────────────────────────────────────────── */
+
+.navbar {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+  font-size: 14px;
+}
+
+[data-theme="dark"] .navbar {
+  border-bottom-color: rgba(255, 255, 255, 0.10);
+}
+
+.navbar__title {
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+.navbar__link {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ifm-color-content-secondary);
+  transition: color 0.15s;
+}
+
+.navbar__link:hover,
+.navbar__link--active {
+  color: var(--ifm-heading-color);
+}
+
+/* GitHub icon in navbar */
+.header-github-link:hover {
+  opacity: 0.8;
+}
+
+.header-github-link::before {
+  content: '';
+  display: block;
+  width: 22px;
+  height: 22px;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E")
+    no-repeat;
+  background-size: contain;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+[data-theme="dark"] .header-github-link::before {
+  filter: invert(1);
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────── */
+
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--ifm-table-border-color) !important;
+}
+
+.menu {
+  font-size: 13.5px;
+  line-height: 1.6;
+  padding: 1rem 0.75rem !important;
+}
+
+.menu__link {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background 0.12s, color 0.12s;
+}
+
+.menu__link--active,
+.menu__link--active:hover {
+  background: rgba(14, 165, 233, 0.10) !important;
+  color: var(--ifm-color-primary) !important;
+  font-weight: 600;
+}
+
+.menu__link:hover:not(.menu__link--active) {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--ifm-heading-color);
+}
+
+[data-theme="dark"] .menu__link:hover:not(.menu__link--active) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Category labels as uppercase section headers */
+.menu__list-item-collapsible > .menu__link {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ifm-color-content-secondary) !important;
+  margin-top: 0.5rem;
+  background: none !important;
+}
+
+.menu__list-item-collapsible > .menu__link:hover {
+  color: var(--ifm-heading-color) !important;
+  background: none !important;
+}
+
+/* ─── Doc article prose ─────────────────────────────────────── */
+
+.markdown {
+  font-size: 14px;
+  line-height: 2;
+  color: var(--ifm-color-content);
+}
+
+.markdown h1:first-child {
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--ifm-heading-color);
+  margin-bottom: 1.5rem;
+}
+
+.markdown h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ifm-heading-color);
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ifm-hr-border-color);
+}
+
+.markdown h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ifm-heading-color);
+  margin-top: 2rem;
+}
+
+.markdown a:not(.hash-link) {
+  font-weight: 600;
+  color: var(--ifm-heading-color);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: oklch(0.685 0.169 237.323 / 60%);
+  text-decoration-thickness: 1px;
+  transition: text-decoration-thickness 0.1s, text-decoration-color 0.1s;
+}
+
+.markdown a:not(.hash-link):hover {
+  text-decoration-thickness: 2px;
+  text-decoration-color: oklch(0.685 0.169 237.323);
+}
+
+.markdown table {
+  font-size: 13.5px;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+}
+
+.markdown th {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--ifm-heading-color);
+  border-bottom: 1px solid var(--ifm-table-border-color);
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+}
+
+.markdown th:first-child { padding-left: 0; }
+.markdown td:first-child { padding-left: 0; }
+.markdown th:last-child  { padding-right: 0; }
+.markdown td:last-child  { padding-right: 0; }
+
+.markdown td {
+  border-bottom: 1px solid var(--ifm-table-border-color);
+  padding: 0.6rem 0.8rem;
+  vertical-align: top;
+}
+
+.markdown tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ─── Table of contents ─────────────────────────────────────── */
+
+.table-of-contents {
+  font-size: 12.5px;
+  line-height: 1.7;
+  border-left: 1px solid var(--ifm-toc-border-color);
+}
+
+.table-of-contents__link {
+  color: var(--ifm-toc-link-color);
+  transition: color 0.12s;
+}
+
+.table-of-contents__link--active,
+.table-of-contents__link:hover {
+  color: var(--ifm-color-primary) !important;
+  font-weight: 500;
+}
+
+/* ─── Admonitions ────────────────────────────────────────────── */
+
+.admonition {
+  border-radius: 6px;
+  border-left: 3px solid;
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+/* ─── Candy-cane gutter pattern ─────────────────────────────── */
+
+/* Applied to sidebar container's left edge — mirrors Tailwind docs gutters */
+.theme-doc-sidebar-container::before {
+  content: "";
+  position: absolute;
+  inset-y: 0;
+  left: -2.5rem;
+  width: 2.5rem;
+  background-image: repeating-linear-gradient(
+    315deg,
+    rgba(0, 0, 0, 0.05) 0,
+    rgba(0, 0, 0, 0.05) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+  background-attachment: fixed;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .theme-doc-sidebar-container::before {
+  background-image: repeating-linear-gradient(
+    315deg,
+    rgba(255, 255, 255, 0.08) 0,
+    rgba(255, 255, 255, 0.08) 1px,
+    transparent 0,
+    transparent 50%
+  );
+}
+
+/* Right-side gutter on the TOC column */
+.theme-doc-toc-desktop {
+  position: relative;
+}
+
+.theme-doc-toc-desktop::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 2.5rem;
+  height: 100vh;
+  background-image: repeating-linear-gradient(
+    315deg,
+    rgba(0, 0, 0, 0.05) 0,
+    rgba(0, 0, 0, 0.05) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="dark"] .theme-doc-toc-desktop::after {
+  background-image: repeating-linear-gradient(
+    315deg,
+    rgba(255, 255, 255, 0.08) 0,
+    rgba(255, 255, 255, 0.08) 1px,
+    transparent 0,
+    transparent 50%
+  );
+}
+
+/* ─── Footer ─────────────────────────────────────────────────── */
+
+.footer {
+  border-top: 1px solid var(--ifm-table-border-color);
+  font-size: 13px;
+}
+
+.footer--light {
   background: var(--ifm-background-surface-color);
+  color: var(--ifm-color-content);
 }
 
-/* Inline code */
-code {
-  border-radius: 4px;
+.footer__title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ifm-color-content-secondary);
+  margin-bottom: 0.75rem;
 }
 
-/* Admonition tweaks */
-.alert--info {
-  border-left-color: var(--ifm-color-primary);
+.footer__link-item {
+  color: var(--ifm-color-content-secondary);
+  transition: color 0.12s;
+}
+
+.footer__link-item:hover {
+  color: var(--ifm-heading-color);
+}
+
+.footer__copyright {
+  font-size: 12px;
+  color: var(--ifm-color-content-secondary);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ifm-table-border-color);
 }
