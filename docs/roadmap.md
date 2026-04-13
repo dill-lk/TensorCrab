@@ -152,7 +152,7 @@ let output = model.forward(&input);
 
 ## Current Status
 
-🔴 **Pre-development** — Docs written. No code exists yet. Starting Stage 1 next.
+🟡 **Stage 1 complete** — Tensor Engine implemented and tested. Starting Stage 2 (Autograd) next.
 
 ## Completion Tracker
 
