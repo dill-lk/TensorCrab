@@ -11,6 +11,14 @@
 
 @import "tailwindcss";
 
+/*
+ * Override Tailwind's dark variant to use Docusaurus's [data-theme="dark"]
+ * attribute instead of the default @media (prefers-color-scheme: dark).
+ * Without this, dark: utilities only fire on system-level dark mode,
+ * ignoring the Docusaurus colour-mode toggle.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ─── Design tokens ─────────────────────────────────────────── */
 
 @theme {
