@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 description = "Rust-native ML library. No Python. No GIL. Just speed."
 license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/dill-lk/TensorCrab"
 build = "build.rs"
 
 [features]

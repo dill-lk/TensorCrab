@@ -793,7 +793,7 @@ mod tests {
         let c = a.matmul(&b).unwrap();
         assert_eq!(c.shape(), &[2, 2]);
         let result = c.to_vec().unwrap();
-        let expected = vec![19.0_f32, 22.0, 43.0, 50.0];
+        let expected = [19.0_f32, 22.0, 43.0, 50.0];
         for (a, e) in result.iter().zip(expected.iter()) {
             assert!((a - e).abs() < 1e-4, "got {a}, expected {e}");
         }
