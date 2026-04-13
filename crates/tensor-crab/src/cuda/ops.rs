@@ -501,7 +501,7 @@ mod tests {
     #[test]
     fn test_shape_accessors() {
         // Verify that shape math is correct without touching the GPU.
-        let shape = vec![2usize, 3, 4];
+        let shape = [2usize, 3, 4];
         let numel: usize = shape.iter().product();
         assert_eq!(numel, 24);
     }
@@ -509,8 +509,8 @@ mod tests {
     #[test]
     fn test_reshape_numel_preserved() {
         // Reshape from [2, 3] to [6] — same number of elements.
-        let old_shape = vec![2usize, 3];
-        let new_shape = vec![6usize];
+        let old_shape = [2usize, 3];
+        let new_shape = [6usize];
         let old_numel: usize = old_shape.iter().product();
         let new_numel: usize = new_shape.iter().product();
         assert_eq!(old_numel, new_numel);
