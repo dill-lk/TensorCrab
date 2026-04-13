@@ -1,0 +1,50 @@
+/**
+ * TensorCrab documentation theme.
+ * Primary palette: Rust orange — matching the Rust language brand.
+ */
+
+:root {
+  --ifm-color-primary: #ce422b;
+  --ifm-color-primary-dark: #b93b26;
+  --ifm-color-primary-darker: #af3824;
+  --ifm-color-primary-darkest: #8f2e1d;
+  --ifm-color-primary-light: #d55540;
+  --ifm-color-primary-lighter: #d85f4b;
+  --ifm-color-primary-lightest: #de7a69;
+  --ifm-code-font-size: 93%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
+  --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #e8674f;
+  --ifm-color-primary-dark: #e35038;
+  --ifm-color-primary-darker: #e1452b;
+  --ifm-color-primary-darkest: #c3321b;
+  --ifm-color-primary-light: #ed7e67;
+  --ifm-color-primary-lighter: #ef8974;
+  --ifm-color-primary-lightest: #f4a596;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.08);
+  --ifm-background-color: #13151a;
+  --ifm-background-surface-color: #1c1f26;
+}
+
+/* Hero banner */
+.hero--primary {
+  background: linear-gradient(135deg, #1c1f26 0%, #2a1810 100%);
+}
+
+/* Feature cards */
+.features_src-components-HomepageFeatures-module {
+  background: var(--ifm-background-surface-color);
+}
+
+/* Inline code */
+code {
+  border-radius: 4px;
+}
+
+/* Admonition tweaks */
+.alert--info {
+  border-left-color: var(--ifm-color-primary);
+}
