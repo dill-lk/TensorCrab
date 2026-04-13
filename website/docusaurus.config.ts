@@ -11,8 +11,8 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://dill-lk.github.io',
-  baseUrl: '/TensorCrab/',
+  url: 'https://tensor-crab.vercel.app',
+  baseUrl: '/',
 
   organizationName: 'dill-lk',
   projectName: 'TensorCrab',
