@@ -98,4 +98,8 @@ pub enum TensorError {
         /// Description of what went wrong.
         msg: String,
     },
+
+    /// The requested operation is not supported in this context.
+    #[error("unsupported operation: {0}")]
+    UnsupportedOperation(String),
 }

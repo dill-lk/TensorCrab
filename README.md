@@ -296,7 +296,7 @@ TensorCrab is the right choice when you need ML as part of a larger Rust applica
 | 🧠 NN Layers | 🟢 Done |
 | 🚀 Optimizers | 🟢 Done |
 | 🌐 WebAssembly | 🔴 Planned |
-| ⚡ CUDA / GPU | 🔴 Planned |
+| ⚡ CUDA / GPU | 🟢 Done |
 | 🌍 Ecosystem | 🔴 Planned |
 
 ---

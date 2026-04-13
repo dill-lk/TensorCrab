@@ -26,11 +26,14 @@ use std::sync::Arc;
 use super::device::CudaDevice;
 use super::error::{CUresult, CudaError, CudaResult};
 use super::ffi;
+use super::pool::GpuMemoryPool;
 
 /// A contiguous region of GPU memory containing `len` elements of type `T`.
 ///
 /// `CudaBuffer<T>` is analogous to [`Vec<T>`] but lives on the device.  Like
-/// `Vec`, it owns its allocation and frees it on drop.
+/// `Vec`, it owns its allocation and frees it on drop — unless the buffer was
+/// created with [`CudaBuffer::uninitialized_pooled`], in which case the
+/// allocation is returned to the pool on drop instead.
 ///
 /// # Memory Layout
 /// Elements are stored contiguously in row-major order, identical to the CPU
@@ -43,6 +46,9 @@ pub struct CudaBuffer<T> {
     len: usize,
     /// Keep the device alive while this buffer exists.
     _device: Arc<CudaDevice>,
+    /// Optional memory pool.  When `Some`, `ptr` is returned to the pool on
+    /// drop rather than freed.
+    pool: Option<Arc<GpuMemoryPool>>,
     /// Phantom type parameter so the compiler tracks `T`.
     _marker: PhantomData<T>,
 }
@@ -65,6 +71,7 @@ impl<T: Copy> CudaBuffer<T> {
                 ptr: 0,
                 len: 0,
                 _device: Arc::clone(device),
+                pool: None,
                 _marker: PhantomData,
             });
         }
@@ -84,6 +91,43 @@ impl<T: Copy> CudaBuffer<T> {
             ptr,
             len,
             _device: Arc::clone(device),
+            pool: None,
+            _marker: PhantomData,
+        })
+    }
+
+    /// Allocates an uninitialised buffer of `len` elements on `device`, backed
+    /// by `pool`.
+    ///
+    /// The buffer behaves identically to one created with [`Self::uninitialized`]
+    /// except that when it is dropped the underlying allocation is returned to
+    /// `pool` instead of being freed.  Future requests of the same byte size
+    /// will be served from the pool without a driver call.
+    ///
+    /// # Errors
+    /// Returns [`CudaError::OutOfMemory`] if the pool cannot satisfy the
+    /// request and `cuMemAlloc` fails.
+    pub fn uninitialized_pooled(
+        len: usize,
+        device: &Arc<CudaDevice>,
+        pool: Arc<GpuMemoryPool>,
+    ) -> CudaResult<Self> {
+        if len == 0 {
+            return Ok(Self {
+                ptr: 0,
+                len: 0,
+                _device: Arc::clone(device),
+                pool: Some(pool),
+                _marker: PhantomData,
+            });
+        }
+        let byte_count = len * std::mem::size_of::<T>();
+        let ptr = pool.alloc(byte_count)?;
+        Ok(Self {
+            ptr,
+            len,
+            _device: Arc::clone(device),
+            pool: Some(pool),
             _marker: PhantomData,
         })
     }
@@ -221,7 +265,13 @@ impl<T: Copy> CudaBuffer<T> {
 
 impl<T> Drop for CudaBuffer<T> {
     fn drop(&mut self) {
-        if self.ptr != 0 {
+        if self.ptr == 0 {
+            return;
+        }
+        if let Some(pool) = &self.pool {
+            // Return the allocation to the pool instead of freeing it.
+            pool.dealloc(self.ptr, self.len * std::mem::size_of::<T>());
+        } else {
             // Ignore errors: nothing useful can be done in drop.
             unsafe {
                 ffi::cuMemFree(self.ptr);

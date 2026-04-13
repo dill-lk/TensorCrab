@@ -8,6 +8,7 @@ use rand::rngs::SmallRng;
 use rand::Rng;
 use rand::SeedableRng;
 
+use crate::device::Device;
 use data::Storage;
 use shape::Shape;
 
@@ -34,6 +35,8 @@ pub struct Tensor<T = f32> {
     pub(crate) shape: Shape,
     /// Offset into the storage where this view starts.
     pub(crate) offset: usize,
+    /// The device where this tensor's data resides.
+    device: Device,
 }
 
 // ─── Debug impl ──────────────────────────────────────────────────────────────
@@ -97,6 +100,7 @@ impl<T: Clone> Tensor<T> {
             storage: Storage::new(data),
             shape: Shape::row_major(shape),
             offset: 0,
+            device: Device::Cpu,
         }
     }
 
@@ -209,6 +213,13 @@ impl<T: Copy> Tensor<T> {
         self.shape.numel() == 0
     }
 
+    /// Returns the device where this tensor's data resides.
+    ///
+    /// CPU tensors always return [`Device::Cpu`].
+    pub fn device(&self) -> &Device {
+        &self.device
+    }
+
     /// Returns the element at a multi-dimensional index.
     ///
     /// The index length must equal `self.ndim()`.
@@ -248,6 +259,36 @@ impl<T: Copy> Tensor<T> {
             self.clone()
         } else {
             Tensor::from_vec(self.to_vec(), &self.shape.dims)
+        }
+    }
+
+    /// Returns a tensor on the requested `device`.
+    ///
+    /// For [`Device::Cpu`] this is a clone.  For GPU devices, use
+    /// `CudaTensor::from_cpu()` instead — this method returns
+    /// [`crate::error::TensorError::UnsupportedOperation`] for GPU targets to guide
+    /// callers toward the correct API.
+    ///
+    /// # Errors
+    /// Returns [`crate::error::TensorError::UnsupportedOperation`] when `device` is a
+    /// GPU device.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// use tensor_crab::device::Device;
+    ///
+    /// let t = Tensor::from_vec(vec![1.0_f32, 2.0], &[2]);
+    /// let same = t.to_device(&Device::Cpu).unwrap();
+    /// assert_eq!(same.to_vec(), t.to_vec());
+    /// ```
+    pub fn to_device(&self, device: &Device) -> Result<Tensor<T>, crate::error::TensorError> {
+        match device {
+            Device::Cpu => Ok(self.clone()),
+            #[cfg(feature = "cuda")]
+            Device::Cuda(_) => Err(crate::error::TensorError::UnsupportedOperation(
+                "use CudaTensor::from_cpu() for GPU transfer".to_string(),
+            )),
         }
     }
 }

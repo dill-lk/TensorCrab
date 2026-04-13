@@ -127,12 +127,12 @@ let output = model.forward(&input);
 - [x] Embedded PTX kernels for `f32`: `add`, `sub`, `mul`, `div`, `relu`, `neg`, `abs`, `sqrt`, `sq`, `exp`, `log`, `fill`, `add_scalar`, `mul_scalar`
 - [x] `CudaTensor` — GPU-backed f32 tensor with `from_cpu` / `to_cpu` round-trips
 - [x] `CudaTensor` ops: `add`, `sub`, `mul`, `div`, `add_scalar`, `mul_scalar`, `relu`, `neg`, `abs`, `sqrt`, `square`, `exp`, `log`, `reshape`, `flatten`
-- [ ] Device abstraction: `Device::CPU` and `Device::CUDA(n)` on existing `Tensor`
-- [ ] `.to(device)` method on Tensor and Variable
-- [ ] Async kernel execution (streams wired to `CudaTensor` ops)
-- [ ] cuBLAS GEMM for `matmul`
-- [ ] Memory pooling for GPU tensors
-- [ ] Mixed precision (f16) support
+- [x] Device abstraction: `Device::Cpu` and `Device::Cuda(n)` enum; `device()` getter on `Tensor` and `Variable`
+- [x] `.to_device(device)` method on `Tensor` and `Variable`
+- [x] Async kernel execution: `CudaStream` wired to `CudaTensor` ops via `with_stream` / `without_stream` / `synchronize`
+- [x] cuBLAS GEMM for `CudaTensor::matmul` (row-major, 2-D tensors)
+- [x] Memory pooling: `GpuMemoryPool` + `CudaBuffer::uninitialized_pooled` for reduced alloc overhead
+- [x] Mixed precision: `F16` type with f32↔f16 software conversion; `PTX_UNARY_F16` / `KERNEL_RELU_F16`
 
 ---
 
@@ -169,7 +169,7 @@ let output = model.forward(&input);
 🟢 **Stage 2 complete** — Autograd Engine implemented with numerical gradient verification.
 🟢 **Stage 3 complete** — Neural Network Layers implemented.
 🟢 **Stage 4 complete** — Optimizers (SGD, Adam, AdamW), schedulers (StepLR, CosineAnnealing), and DataLoader implemented.
-🟡 **Stage 6 in progress** — CUDA backend started: `cuda` feature flag, raw FFI bindings (Driver + Runtime API), `CudaDevice`, `CudaStream`, `CudaEvent`, `CudaBuffer<T>`, PTX module/kernel loader, embedded PTX kernels for 14 f32 ops, and `CudaTensor` GPU tensor with element-wise operations. All compiles cleanly (zero clippy warnings) and existing 62 tests pass.
+🟢 **Stage 6 complete** — Full CUDA backend: FFI bindings, `CudaDevice`, `CudaStream`, `CudaBuffer`, PTX kernels, `CudaTensor` ops, `Device` enum with `.to_device()` on `Tensor` and `Variable`, async execution via `CudaStream`, cuBLAS `matmul`, `GpuMemoryPool`, and `F16` mixed-precision type. All 117 unit tests + 65 doc-tests pass, zero clippy warnings.
 
 ## Completion Tracker
 
@@ -182,5 +182,5 @@ let output = model.forward(&input);
 | Stage 3 — NN Layers | 🟢 Done | Claude |
 | Stage 4 — Optimizers | 🟢 Done | Claude |
 | Stage 5 — WASM | 🔴 Not started | — |
-| Stage 6 — CUDA GPU | 🟡 In progress | Claude |
+| Stage 6 — CUDA GPU | 🟢 Done | Claude |
 | Stage 7 — Ecosystem | 🔴 Not started | — |

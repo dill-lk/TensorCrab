@@ -31,6 +31,17 @@
 | AdamW | `src/optim/adamw.rs` | 🟢 Done |
 | Schedulers | `src/optim/scheduler.rs` | 🟢 Done |
 | DataLoader | `src/optim/dataloader.rs` | 🟢 Done |
+| Device enum | `src/device.rs` | 🟢 Done |
+| CUDA FFI | `src/cuda/ffi.rs` | 🟢 Done |
+| CUDA Device | `src/cuda/device.rs` | 🟢 Done |
+| CUDA Stream | `src/cuda/stream.rs` | 🟢 Done |
+| CUDA Buffer | `src/cuda/buffer.rs` | 🟢 Done |
+| CUDA Module | `src/cuda/module.rs` | 🟢 Done |
+| CUDA Kernels (PTX) | `src/cuda/kernels.rs` | 🟢 Done |
+| CudaTensor ops | `src/cuda/ops.rs` | 🟢 Done |
+| cuBLAS GEMM | `src/cuda/cublas.rs` | 🟢 Done |
+| GPU Memory Pool | `src/cuda/pool.rs` | 🟢 Done |
+| F16 mixed precision | `src/cuda/half.rs` | 🟢 Done |
 
 ---
 

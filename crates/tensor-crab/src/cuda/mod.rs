@@ -73,17 +73,23 @@
 //! ```
 
 pub mod buffer;
+pub mod cublas;
 pub mod device;
 pub mod error;
 pub mod ffi;
+pub mod half;
 pub mod kernels;
 pub mod module;
 pub mod ops;
+pub mod pool;
 pub mod stream;
 
 pub use buffer::CudaBuffer;
+pub use cublas::CublasHandle;
 pub use device::{CudaDevice, DeviceProperties};
 pub use error::{CUresult, CudaError, CudaResult, CudartError};
+pub use half::F16;
 pub use module::{grid_size_1d, CudaFunction, CudaModule, DEFAULT_BLOCK_SIZE};
 pub use ops::CudaTensor;
+pub use pool::GpuMemoryPool;
 pub use stream::{CudaEvent, CudaStream};

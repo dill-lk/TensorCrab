@@ -75,17 +75,20 @@
 pub mod autograd;
 #[cfg(feature = "cuda")]
 pub mod cuda;
+pub mod device;
 pub mod error;
 pub mod nn;
 pub mod optim;
 pub mod tensor;
 
+pub use device::Device;
 pub use error::TensorError;
 pub use tensor::Tensor;
 
 /// Convenience re-exports for common usage.
 pub mod prelude {
     pub use super::autograd::{backward, Variable};
+    pub use super::device::Device;
     pub use super::nn::{Module, Sequential};
     pub use super::optim::{Adam, AdamW, DataLoader, Optimizer, StepLR, SGD};
     pub use super::Tensor;
