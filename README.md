@@ -4,7 +4,7 @@
 
 TensorCrab is a Rust-native machine learning library — think PyTorch, but written entirely in Rust with zero Python overhead.
 
-> **Current Status:** 🔴 Pre-development — docs written, no code yet. [See Roadmap](./roadmap.md)
+> **Current Status:** 🔴 Pre-development — docs written, no code yet. [See Roadmap](./docs/roadmap.md)
 
 ```rust
 use tensor_crab::prelude::*;
@@ -47,10 +47,10 @@ tensor-crab = "0.1.0"
 
 ## Documentation
 
-- [What is TensorCrab?](./what-is.md)
-- [Roadmap](./roadmap.md)
-- [Development Plan](./plan.md)
-- [Architecture](./architecture.md)
+- [What is TensorCrab?](./docs/what-is.md)
+- [Roadmap](./docs/roadmap.md)
+- [Development Plan](./docs/plan.md)
+- [Architecture](./docs/architecture.md)
 - [Agents & Workflow](./agents.md)
 - [Contributing](./CONTRIBUTING.md)
 
