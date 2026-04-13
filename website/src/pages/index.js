@@ -1,55 +1,40 @@
-import type {ReactNode} from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
 import CodeBlock from '@theme/CodeBlock';
 import styles from './index.module.css';
-
-interface Feature {
-  emoji: string;
-  title: string;
-  description: string;
-}
-
-const features: Feature[] = [
-  {
-    emoji: '🔒',
-    title: 'Memory-Safe by Default',
-    description:
-      "Rust's borrow checker catches memory bugs at compile time. No leaks, no use-after-free, no data races — ever.",
-  },
-  {
-    emoji: '⚡',
-    title: 'Native Speed',
-    description:
-      'Zero interpreter overhead. Tensor operations compile directly to machine code — as fast as hand-written C++.',
-  },
-  {
-    emoji: '🔁',
-    title: 'Automatic Differentiation',
-    description:
-      'Dynamic computation graph built as you compute. Call backward() once and gradients flow everywhere.',
-  },
-  {
-    emoji: '🧠',
-    title: 'Composable NN Layers',
-    description:
-      'Linear, ReLU, Sigmoid, Tanh, Softmax, BatchNorm1d, Dropout — all implement Module and snap together.',
-  },
-  {
-    emoji: '🚀',
-    title: 'Production Optimizers',
-    description:
-      'SGD with momentum, Adam, AdamW, StepLR and CosineAnnealing schedulers — everything you need to train.',
-  },
-  {
-    emoji: '📦',
-    title: 'Single Binary Deploy',
-    description:
-      'No Python runtime. No pip. No venv. Your trained model ships as one self-contained binary.',
-  },
+const features = [
+    {
+        emoji: '🔒',
+        title: 'Memory-Safe by Default',
+        description: "Rust's borrow checker catches memory bugs at compile time. No leaks, no use-after-free, no data races — ever.",
+    },
+    {
+        emoji: '⚡',
+        title: 'Native Speed',
+        description: 'Zero interpreter overhead. Tensor operations compile directly to machine code — as fast as hand-written C++.',
+    },
+    {
+        emoji: '🔁',
+        title: 'Automatic Differentiation',
+        description: 'Dynamic computation graph built as you compute. Call backward() once and gradients flow everywhere.',
+    },
+    {
+        emoji: '🧠',
+        title: 'Composable NN Layers',
+        description: 'Linear, ReLU, Sigmoid, Tanh, Softmax, BatchNorm1d, Dropout — all implement Module and snap together.',
+    },
+    {
+        emoji: '🚀',
+        title: 'Production Optimizers',
+        description: 'SGD with momentum, Adam, AdamW, StepLR and CosineAnnealing schedulers — everything you need to train.',
+    },
+    {
+        emoji: '📦',
+        title: 'Single Binary Deploy',
+        description: 'No Python runtime. No pip. No venv. Your trained model ships as one self-contained binary.',
+    },
 ];
-
 const codeExample = `use tensor_crab::prelude::*;
 use tensor_crab::nn::{Module, Sequential, Linear, ReLU, loss};
 use tensor_crab::autograd::{Variable, backward};
@@ -70,17 +55,13 @@ let l    = loss::mse_loss(&pred, &target);
 backward(&l);   // gradients flow through the whole network
 opt.step();
 opt.zero_grad();`;
-
-export default function Home(): ReactNode {
-  return (
-    <Layout
-      title="TensorCrab — Rust ML Library"
-      description="A blazing-fast ML library written entirely in Rust. No Python. No GIL. No overhead.">
+export default function Home() {
+    return (<Layout title="TensorCrab — Rust ML Library" description="A blazing-fast ML library written entirely in Rust. No Python. No GIL. No overhead.">
 
       {/* ── Hero ── */}
       <section className={styles.heroSection}>
-        <div aria-hidden="true" className={`${styles.heroGutter} ${styles.heroGutterLeft}`} />
-        <div aria-hidden="true" className={`${styles.heroGutter} ${styles.heroGutterRight}`} />
+        <div aria-hidden="true" className={`${styles.heroGutter} ${styles.heroGutterLeft}`}/>
+        <div aria-hidden="true" className={`${styles.heroGutter} ${styles.heroGutterRight}`}/>
 
         <div className={styles.heroInner}>
           <div className={styles.heroBadge}>
@@ -121,13 +102,11 @@ export default function Home(): ReactNode {
       <section className={styles.featuresSection}>
         <div className={styles.featuresInner}>
           <div className={styles.featuresGrid}>
-            {features.map(({emoji, title, description}) => (
-              <div key={title} className={styles.featureCard}>
+            {features.map(({ emoji, title, description }) => (<div key={title} className={styles.featureCard}>
                 <div className={styles.featureEmoji}>{emoji}</div>
                 <h3 className={styles.featureTitle}>{title}</h3>
                 <p className={styles.featureDesc}>{description}</p>
-              </div>
-            ))}
+              </div>))}
           </div>
         </div>
       </section>
@@ -187,24 +166,20 @@ export default function Home(): ReactNode {
               </thead>
               <tbody>
                 {[
-                  ['Language', 'Python + C++', 'Pure Rust'],
-                  ['Memory safety', 'Manual / GC', 'Compile-time ✓'],
-                  ['Deployment', 'Heavy containers + Python', 'Single binary'],
-                  ['Concurrency', 'GIL limits parallelism', 'True multi-threading'],
-                  ['Overhead', 'Interpreter + FFI', 'Zero'],
-                ].map(([feature, python, rust], i) => (
-                  <tr key={feature} className={i % 2 === 1 ? styles.tableRowAlt : ''}>
+            ['Language', 'Python + C++', 'Pure Rust'],
+            ['Memory safety', 'Manual / GC', 'Compile-time ✓'],
+            ['Deployment', 'Heavy containers + Python', 'Single binary'],
+            ['Concurrency', 'GIL limits parallelism', 'True multi-threading'],
+            ['Overhead', 'Interpreter + FFI', 'Zero'],
+        ].map(([feature, python, rust], i) => (<tr key={feature} className={i % 2 === 1 ? styles.tableRowAlt : ''}>
                     <td className={styles.tdFeature}>{feature}</td>
                     <td className={styles.tdPython}>{python}</td>
                     <td className={styles.tdRust}>{rust}</td>
-                  </tr>
-                ))}
+                  </tr>))}
               </tbody>
             </table>
           </div>
         </div>
       </section>
-    </Layout>
-  );
+    </Layout>);
 }
-
