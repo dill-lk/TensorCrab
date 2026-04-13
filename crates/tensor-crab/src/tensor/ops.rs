@@ -349,6 +349,314 @@ impl Tensor<f32> {
     }
 }
 
+// ─── Unary math ops (needed by autograd) ─────────────────────────────────────
+
+impl Tensor<f32> {
+    /// Applies the ReLU activation element-wise: `max(0, x)`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![-1.0_f32, 0.0, 2.0], &[3]);
+    /// assert_eq!(a.relu().to_vec(), vec![0.0, 0.0, 2.0]);
+    /// ```
+    pub fn relu(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| v.max(0.0)).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Applies the sigmoid activation element-wise: `1 / (1 + exp(-x))`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![0.0_f32], &[1]);
+    /// assert!((a.sigmoid().to_vec()[0] - 0.5).abs() < 1e-6);
+    /// ```
+    pub fn sigmoid(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self
+            .to_vec()
+            .into_iter()
+            .map(|v| 1.0 / (1.0 + (-v).exp()))
+            .collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Applies the natural logarithm element-wise.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![1.0_f32, std::f32::consts::E], &[2]);
+    /// let b = a.log();
+    /// assert!((b.to_vec()[0]).abs() < 1e-6);
+    /// assert!((b.to_vec()[1] - 1.0).abs() < 1e-6);
+    /// ```
+    pub fn log(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| v.ln()).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Applies `e^x` element-wise.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![0.0_f32, 1.0], &[2]);
+    /// let b = a.exp();
+    /// assert!((b.to_vec()[0] - 1.0).abs() < 1e-6);
+    /// assert!((b.to_vec()[1] - std::f32::consts::E).abs() < 1e-5);
+    /// ```
+    pub fn exp(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| v.exp()).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Negates every element: `-x`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![1.0_f32, -2.0], &[2]);
+    /// assert_eq!(a.neg().to_vec(), vec![-1.0, 2.0]);
+    /// ```
+    pub fn neg(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| -v).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Expands (broadcasts) a scalar tensor of shape `[1]` to the given shape
+    /// by repeating the single value.
+    ///
+    /// Used internally by the autograd backward pass to propagate a scalar
+    /// gradient back to a multi-element input.
+    ///
+    /// # Panics
+    /// Panics if `self` is not a scalar (shape `[1]`).
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let scalar = Tensor::from_vec(vec![3.0_f32], &[1]);
+    /// let expanded = scalar.expand_to(&[2, 3]);
+    /// assert_eq!(expanded.shape(), &[2, 3]);
+    /// assert!(expanded.to_vec().iter().all(|&v| v == 3.0));
+    /// ```
+    pub fn expand_to(&self, shape: &[usize]) -> Tensor<f32> {
+        assert_eq!(
+            self.shape.numel(),
+            1,
+            "expand_to: only scalar tensors (numel == 1) can be expanded"
+        );
+        let val = self.to_vec()[0];
+        let numel: usize = shape.iter().product();
+        Tensor::from_vec(vec![val; numel], shape)
+    }
+
+    /// Reduces the tensor along every axis that differs from `target_shape`,
+    /// handling the gradient un-broadcasting needed during backprop.
+    ///
+    /// Rules (NumPy broadcasting in reverse):
+    /// - Leading axes that don't exist in `target_shape` are summed away.
+    /// - Axes where `target_shape` has size 1 (but `self` has size > 1) are
+    ///   summed, then the axis is kept with size 1.
+    ///
+    /// If `self.shape() == target_shape` the tensor is returned as-is.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// // Gradient for a [1, 4] input that was broadcast to [3, 4].
+    /// let grad = Tensor::from_vec(vec![1.0_f32; 12], &[3, 4]);
+    /// let reduced = grad.sum_to(&[1, 4]);
+    /// assert_eq!(reduced.shape(), &[1, 4]);
+    /// assert_eq!(reduced.to_vec(), vec![3.0; 4]);
+    /// ```
+    pub fn sum_to(&self, target_shape: &[usize]) -> Tensor<f32> {
+        if self.shape() == target_shape {
+            return self.clone();
+        }
+
+        let self_shape = self.shape.dims.clone();
+        let out_ndim = self_shape.len();
+        let target_ndim = target_shape.len();
+        // Pad target_shape with leading 1s so it matches self's ndim.
+        let pad = out_ndim.saturating_sub(target_ndim);
+        let padded_target: Vec<usize> = std::iter::repeat_n(1, pad)
+            .chain(target_shape.iter().copied())
+            .collect();
+
+        // Collect axes where we need to reduce.
+        let reduce_axes: Vec<usize> = (0..out_ndim)
+            .filter(|&i| padded_target[i] == 1 && self_shape[i] != 1)
+            .collect();
+
+        // Sum over those axes one at a time (always axis 0 after collapsing).
+        let mut result = self.clone();
+        for &axis in &reduce_axes {
+            result = result.sum_axis_keepdim(axis);
+        }
+
+        // Drop leading size-1 axes that correspond to the padding we added.
+        if pad > 0 {
+            // After the reductions, the leading `pad` dims are all 1.
+            // Reshape to remove them.
+            let final_shape: Vec<usize> = result.shape()[pad..].to_vec();
+            result = result
+                .reshape(&final_shape)
+                .expect("sum_to: reshape to target_shape failed");
+        }
+        result
+    }
+
+    /// Sums along `axis`, keeping that axis with size 1 in the output.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0], &[2, 3]);
+    /// let s = a.sum_axis_keepdim(0);
+    /// assert_eq!(s.shape(), &[1, 3]);
+    /// assert_eq!(s.to_vec(), vec![5.0, 7.0, 9.0]);
+    /// ```
+    pub fn sum_axis_keepdim(&self, axis: usize) -> Tensor<f32> {
+        let ndim = self.shape.ndim();
+        assert!(
+            axis < ndim,
+            "sum_axis_keepdim: axis {axis} out of bounds for {ndim}D tensor"
+        );
+
+        // Output shape: same as self but axis dim = 1.
+        let mut out_shape = self.shape.dims.clone();
+        out_shape[axis] = 1;
+        let out_numel: usize = out_shape.iter().product();
+        let mut out_data = vec![0.0_f32; out_numel];
+        let out_shape_obj = crate::tensor::shape::Shape::row_major(&out_shape);
+
+        for idx in super::IndexIterator::new(self.shape.dims.clone()) {
+            let val = self.get_at(&idx);
+            // Map index to output index: zero out the reduced axis.
+            let mut out_idx = idx.clone();
+            out_idx[axis] = 0;
+            let flat = out_shape_obj.flat_index(&out_idx);
+            out_data[flat] += val;
+        }
+
+        Tensor::from_vec(out_data, &out_shape)
+    }
+
+    /// Applies the hyperbolic tangent element-wise.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![0.0_f32], &[1]);
+    /// assert!((a.tanh().to_vec()[0]).abs() < 1e-6);
+    /// ```
+    pub fn tanh(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| v.tanh()).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Applies the square root element-wise.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![4.0_f32, 9.0], &[2]);
+    /// assert_eq!(a.sqrt().to_vec(), vec![2.0, 3.0]);
+    /// ```
+    pub fn sqrt(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| v.sqrt()).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Clamps every element to the range `[min_val, max_val]`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![-1.0_f32, 0.5, 2.0], &[3]);
+    /// assert_eq!(a.clamp(0.0, 1.0).to_vec(), vec![0.0, 0.5, 1.0]);
+    /// ```
+    pub fn clamp(&self, min_val: f32, max_val: f32) -> Tensor<f32> {
+        let data: Vec<f32> = self
+            .to_vec()
+            .into_iter()
+            .map(|v| v.clamp(min_val, max_val))
+            .collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Broadcasts this tensor to `target_shape` by repeating elements along
+    /// any axis where `self.shape[axis] == 1`.
+    ///
+    /// The number of dimensions of `self` must be ≤ `target_shape.len()`.  Any
+    /// missing leading dimensions are treated as size 1 (NumPy-style padding).
+    ///
+    /// # Panics
+    /// Panics if a dimension of `self` is neither 1 nor equal to the
+    /// corresponding dimension of `target_shape`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[1, 3]);
+    /// let b = a.broadcast_to(&[4, 3]);
+    /// assert_eq!(b.shape(), &[4, 3]);
+    /// assert_eq!(b.to_vec()[3], 1.0); // second row same as first
+    /// ```
+    pub fn broadcast_to(&self, target_shape: &[usize]) -> Tensor<f32> {
+        let out_ndim = target_shape.len();
+        let in_ndim = self.shape.ndim();
+        assert!(
+            out_ndim >= in_ndim,
+            "broadcast_to: target ndim {out_ndim} < input ndim {in_ndim}"
+        );
+        let pad = out_ndim - in_ndim;
+        // Validate broadcast compatibility.
+        for (i, (&pi, &ti)) in self
+            .shape
+            .dims
+            .iter()
+            .zip(target_shape[pad..].iter())
+            .enumerate()
+        {
+            assert!(
+                pi == 1 || pi == ti,
+                "broadcast_to: cannot broadcast dim {i} from size {pi} to {ti}"
+            );
+        }
+        let numel: usize = target_shape.iter().product();
+        let mut data = Vec::with_capacity(numel);
+        for idx in super::IndexIterator::new(target_shape.to_vec()) {
+            // Map target index to source index, treating padded/size-1 dims as 0.
+            let src_idx: Vec<usize> = idx[pad..]
+                .iter()
+                .zip(self.shape.dims.iter())
+                .map(|(&oi, &ts)| if ts == 1 { 0 } else { oi })
+                .collect();
+            data.push(self.get_at(&src_idx));
+        }
+        Tensor::from_vec(data, target_shape)
+    }
+
+    /// Applies an element-wise power of 2 (`x²`).
+    ///
+    /// Equivalent to `self.mul(self)` but avoids creating a temporary Variable.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![2.0_f32, 3.0], &[2]);
+    /// assert_eq!(a.square().to_vec(), vec![4.0, 9.0]);
+    /// ```
+    pub fn square(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| v * v).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+}
+
 // ─── Display ──────────────────────────────────────────────────────────────────
 
 impl fmt::Display for Tensor<f32> {
