@@ -43,4 +43,59 @@ pub enum TensorError {
         /// Number of dimensions of the tensor that was passed.
         ndim: usize,
     },
+
+    /// An axis index was out of range for the tensor's number of dimensions.
+    #[error("axis {axis} out of bounds for tensor with {ndim} dimensions")]
+    AxisError {
+        /// The axis that was requested.
+        axis: usize,
+        /// The actual number of dimensions.
+        ndim: usize,
+    },
+
+    /// A multi-dimensional index was out of bounds.
+    #[error("index {index:?} out of bounds for shape {shape:?}")]
+    IndexError {
+        /// The index that was provided.
+        index: Vec<usize>,
+        /// The shape of the tensor.
+        shape: Vec<usize>,
+    },
+
+    /// Invalid padding specification.
+    #[error("invalid padding: {msg}")]
+    PaddingError {
+        /// Description of what went wrong.
+        msg: String,
+    },
+
+    /// Cannot squeeze a dimension that is not size 1.
+    #[error("cannot squeeze axis {axis}: dimension has size {size}, not 1")]
+    SqueezeError {
+        /// The axis that was requested.
+        axis: usize,
+        /// The actual size of that dimension.
+        size: usize,
+    },
+
+    /// Gather index out of range or shape mismatch.
+    #[error("gather error: {msg}")]
+    GatherError {
+        /// Description of what went wrong.
+        msg: String,
+    },
+
+    /// Cannot split or chunk the tensor as requested.
+    #[error("chunk error: {msg}")]
+    ChunkError {
+        /// Description of what went wrong.
+        msg: String,
+    },
+
+    /// Invalid permutation for `permute`.
+    #[error("permutation error: {msg}")]
+    PermutationError {
+        /// Description of what went wrong.
+        msg: String,
+    },
 }
