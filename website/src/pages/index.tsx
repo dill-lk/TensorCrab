@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
+import styles from './index.module.css';
 
 interface Feature {
   emoji: string;
@@ -76,71 +77,38 @@ export default function Home(): ReactNode {
       description="A blazing-fast ML library written entirely in Rust. No Python. No GIL. No overhead.">
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden border-b border-black/5 dark:border-white/10 bg-white dark:bg-[oklch(0.13_0.028_261.692)]">
-        {/* Diagonal candy-cane gutters */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 w-10 hidden lg:block"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(315deg, var(--gutter-color) 0, var(--gutter-color) 1px, transparent 0, transparent 50%)',
-            backgroundSize: '10px 10px',
-            backgroundAttachment: 'fixed',
-            // @ts-ignore
-            '--gutter-color': 'rgba(0,0,0,0.05)',
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-0 w-10 hidden lg:block dark:opacity-100"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(315deg, var(--gutter-color) 0, var(--gutter-color) 1px, transparent 0, transparent 50%)',
-            backgroundSize: '10px 10px',
-            backgroundAttachment: 'fixed',
-            // @ts-ignore
-            '--gutter-color': 'rgba(0,0,0,0.05)',
-          }}
-        />
+      <section className={styles.heroSection}>
+        <div aria-hidden="true" className={`${styles.heroGutter} ${styles.heroGutterLeft}`} />
+        <div aria-hidden="true" className={`${styles.heroGutter} ${styles.heroGutterRight}`} />
 
-        <div className="relative mx-auto max-w-5xl px-6 py-24 text-center lg:py-32">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/5 px-3 py-1 text-xs font-medium text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+        <div className={styles.heroInner}>
+          <div className={styles.heroBadge}>
             🦀 Pure Rust &nbsp;·&nbsp; No Python &nbsp;·&nbsp; No GIL
           </div>
 
-          <Heading
-            as="h1"
-            className="mt-4 text-5xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-6xl"
-          >
+          <Heading as="h1" className={styles.heroTitle}>
             Machine learning,
             <br />
-            <span className="text-sky-500 dark:text-sky-400">the Rust way.</span>
+            <span className={styles.heroAccent}>the Rust way.</span>
           </Heading>
 
-          <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className={styles.heroDesc}>
             TensorCrab gives you N-dimensional tensors, automatic differentiation, composable
             layers, and gradient-based optimizers — all in a single Rust library with zero Python dependency.
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              to="/docs/getting-started"
-              className="rounded-lg bg-gray-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 dark:bg-sky-500 dark:hover:bg-sky-400 dark:text-white no-underline transition-colors"
-            >
+          <div className={styles.heroButtons}>
+            <Link to="/docs/getting-started" className={styles.btnPrimary}>
               Get started →
             </Link>
-            <Link
-              to="/docs/intro"
-              className="rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/10 no-underline transition-colors"
-            >
+            <Link to="/docs/intro" className={styles.btnSecondary}>
               What is TensorCrab?
             </Link>
           </div>
 
-          {/* Install snippet */}
-          <div className="mt-10 flex justify-center">
-            <div className="inline-flex items-center gap-3 rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-5 py-3">
-              <span className="font-mono text-xs text-gray-500 dark:text-gray-400 select-all">
+          <div className={styles.installRow}>
+            <div className={styles.installSnippet}>
+              <span className={styles.installCode}>
                 tensor-crab = {'{'} git = "https://github.com/dill-lk/TensorCrab" {'}'}
               </span>
             </div>
@@ -149,14 +117,14 @@ export default function Home(): ReactNode {
       </section>
 
       {/* ── Features grid ── */}
-      <section className="border-b border-black/5 dark:border-white/10 bg-gray-50/50 dark:bg-[oklch(0.165_0.025_260)]">
-        <div className="mx-auto max-w-5xl px-6 py-20">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <section className={styles.featuresSection}>
+        <div className={styles.featuresInner}>
+          <div className={styles.featuresGrid}>
             {features.map(({emoji, title, description}) => (
-              <div key={title} className="rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-white/5 p-6 shadow-sm">
-                <div className="mb-3 text-2xl">{emoji}</div>
-                <h3 className="mb-2 text-sm font-semibold text-gray-950 dark:text-white">{title}</h3>
-                <p className="text-sm leading-7 text-gray-600 dark:text-gray-400">{description}</p>
+              <div key={title} className={styles.featureCard}>
+                <div className={styles.featureEmoji}>{emoji}</div>
+                <h3 className={styles.featureTitle}>{title}</h3>
+                <p className={styles.featureDesc}>{description}</p>
               </div>
             ))}
           </div>
@@ -164,52 +132,40 @@ export default function Home(): ReactNode {
       </section>
 
       {/* ── Code example ── */}
-      <section className="border-b border-black/5 dark:border-white/10 bg-white dark:bg-[oklch(0.13_0.028_261.692)]">
-        <div className="mx-auto max-w-5xl px-6 py-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <section className={styles.codeSection}>
+        <div className={styles.codeInner}>
+          <div className={styles.codeGrid}>
             <div>
-              <p className="text-xs font-semibold tracking-widest uppercase text-sky-500 dark:text-sky-400 mb-3">
-                Quick start
-              </p>
-              <Heading as="h2" className="text-3xl font-bold tracking-tight text-gray-950 dark:text-white mb-5">
+              <p className={styles.codeLabel}>Quick start</p>
+              <Heading as="h2" className={styles.codeTitle}>
                 Train a model in 20 lines of Rust
               </Heading>
-              <p className="text-sm leading-7 text-gray-600 dark:text-gray-400 mb-6">
+              <p className={styles.codeDesc}>
                 Build a network with <code>Sequential</code>, compute a loss, call{' '}
                 <code>backward()</code> once, and let <code>Adam</code> update every weight.
                 No boilerplate. No Python.
               </p>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  to="/docs/getting-started"
-                  className="text-sm font-semibold text-sky-600 dark:text-sky-400 hover:underline no-underline"
-                >
+              <div className={styles.codeLinks}>
+                <Link to="/docs/getting-started" className={styles.linkAccent}>
                   Full guide →
                 </Link>
-                <Link
-                  to="/docs/nn"
-                  className="text-sm font-semibold text-gray-500 dark:text-gray-400 hover:underline no-underline"
-                >
+                <Link to="/docs/nn" className={styles.linkMuted}>
                   NN layers →
                 </Link>
-                <Link
-                  to="/docs/optim"
-                  className="text-sm font-semibold text-gray-500 dark:text-gray-400 hover:underline no-underline"
-                >
+                <Link to="/docs/optim" className={styles.linkMuted}>
                   Optimizers →
                 </Link>
               </div>
             </div>
 
-            {/* Code block */}
-            <div className="overflow-hidden rounded-2xl bg-gray-950 shadow-2xl ring-1 ring-white/10">
-              <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
-                <div className="h-3 w-3 rounded-full bg-red-500/70" />
-                <div className="h-3 w-3 rounded-full bg-yellow-500/70" />
-                <div className="h-3 w-3 rounded-full bg-green-500/70" />
-                <span className="ml-2 font-mono text-xs text-white/40">main.rs</span>
+            <div className={styles.codeBlockWrapper}>
+              <div className={styles.codeBlockHeader}>
+                <div className={`${styles.trafficDot} ${styles.trafficRed}`} />
+                <div className={`${styles.trafficDot} ${styles.trafficYellow}`} />
+                <div className={`${styles.trafficDot} ${styles.trafficGreen}`} />
+                <span className={styles.codeBlockLabel}>main.rs</span>
               </div>
-              <pre className="overflow-x-auto p-5 text-xs leading-6 text-gray-300 m-0 rounded-none bg-transparent border-none">
+              <pre className={styles.codeBlockPre}>
                 <code>{codeExample}</code>
               </pre>
             </div>
@@ -218,22 +174,20 @@ export default function Home(): ReactNode {
       </section>
 
       {/* ── Comparison table ── */}
-      <section className="bg-gray-50/50 dark:bg-[oklch(0.165_0.025_260)]">
-        <div className="mx-auto max-w-3xl px-6 py-20 text-center">
-          <p className="text-xs font-semibold tracking-widest uppercase text-sky-500 dark:text-sky-400 mb-3">
-            Why TensorCrab?
-          </p>
-          <Heading as="h2" className="text-3xl font-bold tracking-tight text-gray-950 dark:text-white mb-10">
+      <section className={styles.comparisonSection}>
+        <div className={styles.comparisonInner}>
+          <p className={styles.comparisonLabel}>Why TensorCrab?</p>
+          <Heading as="h2" className={styles.comparisonTitle}>
             Less weight. More speed.
           </Heading>
 
-          <div className="overflow-hidden rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm text-left">
-            <table className="w-full text-sm">
+          <div className={styles.tableWrapper}>
+            <table className={styles.comparisonTable}>
               <thead>
-                <tr className="border-b border-black/5 dark:border-white/10">
-                  <th className="py-3 px-5 font-semibold text-gray-950 dark:text-white" />
-                  <th className="py-3 px-5 font-semibold text-gray-950 dark:text-white">Python (PyTorch)</th>
-                  <th className="py-3 px-5 font-semibold text-gray-950 dark:text-white">🦀 TensorCrab</th>
+                <tr>
+                  <th />
+                  <th>Python (PyTorch)</th>
+                  <th>🦀 TensorCrab</th>
                 </tr>
               </thead>
               <tbody>
@@ -244,17 +198,10 @@ export default function Home(): ReactNode {
                   ['Concurrency', 'GIL limits parallelism', 'True multi-threading'],
                   ['Overhead', 'Interpreter + FFI', 'Zero'],
                 ].map(([feature, python, rust], i) => (
-                  <tr
-                    key={feature}
-                    className={
-                      i % 2 === 1
-                        ? 'bg-gray-50 dark:bg-white/[0.02]'
-                        : ''
-                    }
-                  >
-                    <td className="py-3 px-5 font-medium text-gray-950 dark:text-white">{feature}</td>
-                    <td className="py-3 px-5 text-gray-500 dark:text-gray-400">{python}</td>
-                    <td className="py-3 px-5 text-sky-600 dark:text-sky-400 font-medium">{rust}</td>
+                  <tr key={feature} className={i % 2 === 1 ? styles.tableRowAlt : ''}>
+                    <td className={styles.tdFeature}>{feature}</td>
+                    <td className={styles.tdPython}>{python}</td>
+                    <td className={styles.tdRust}>{rust}</td>
                   </tr>
                 ))}
               </tbody>
@@ -265,3 +212,4 @@ export default function Home(): ReactNode {
     </Layout>
   );
 }
+

@@ -1,7 +1,7 @@
 /**
- * TensorCrab documentation — Tailwind CSS docs-inspired styling.
+ * TensorCrab documentation — custom styling.
  *
- * Design tokens are lifted directly from tailwindcss.com:
+ * Design tokens:
  *   - Inter for prose, IBM Plex Mono for code
  *   - gray-950 dark background (oklch 0.13 0.028 261.692)
  *   - sky-400 accent for links
@@ -9,27 +9,16 @@
  *   - Diagonal "candy cane" gutter pattern
  */
 
-@import "tailwindcss";
-
-/*
- * Override Tailwind's dark variant to use Docusaurus's [data-theme="dark"]
- * attribute instead of the default @media (prefers-color-scheme: dark).
- * Without this, dark: utilities only fire on system-level dark mode,
- * ignoring the Docusaurus colour-mode toggle.
- */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
-
 /* ─── Design tokens ─────────────────────────────────────────── */
 
-@theme {
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", "Fira Code", ui-monospace, monospace;
-
-  --color-surface-dark: oklch(0.13 0.028 261.692);
-  --color-accent: oklch(0.685 0.169 237.323); /* sky-400 */
+:root {
+  --tc-font-sans: "Inter", system-ui, sans-serif;
+  --tc-font-mono: "IBM Plex Mono", "Fira Code", ui-monospace, monospace;
+  --tc-color-surface-dark: oklch(0.13 0.028 261.692);
+  --tc-color-accent: oklch(0.685 0.169 237.323); /* sky-400 */
 }
 
-/* ─── Infima overrides — match Tailwind docs palette ─────────── */
+/* ─── Infima overrides ───────────────────────────────────────── */
 
 :root {
   /* sky-600 in light mode */
@@ -41,8 +30,8 @@
   --ifm-color-primary-lighter: oklch(0.645 0.162 242);
   --ifm-color-primary-lightest: oklch(0.685 0.169 237.323);
 
-  --ifm-font-family-base: "Inter", system-ui, sans-serif;
-  --ifm-font-family-monospace: "IBM Plex Mono", "Fira Code", ui-monospace, monospace;
+  --ifm-font-family-base: var(--tc-font-sans);
+  --ifm-font-family-monospace: var(--tc-font-mono);
   --ifm-code-font-size: 87.5%;
   --ifm-font-size-base: 14px;
   --ifm-line-height-base: 2;
