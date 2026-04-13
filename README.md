@@ -4,15 +4,18 @@
 
 TensorCrab is a Rust-native machine learning library — think PyTorch, but written entirely in Rust with zero Python overhead.
 
-> **Current Status:** 🟢 Stage 1 Complete — Tensor Engine implemented. [See Roadmap](./docs/roadmap.md)
+> **Current Status:** 🟢 Stage 2 Complete — Autograd Engine implemented with numerical gradient tests. [See Roadmap](./docs/roadmap.md)
 
 ```rust
-use tensor_crab::prelude::*;
+use std::sync::Arc;
+use tensor_crab::tensor::Tensor;
+use tensor_crab::autograd::{Variable, backward};
 
-let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0, 4.0], &[2, 2]);
-let b = Tensor::from_vec(vec![5.0_f32, 6.0, 7.0, 8.0], &[2, 2]);
-let c = a.matmul(&b).unwrap();
-println!("{c}"); // [[19, 22], [43, 50]]
+// Stage 2: Automatic Differentiation
+let x = Variable::new(Tensor::from_vec(vec![2.0_f32, 3.0], &[2]), true);
+let z = x.var_mul(&x).var_sum(); // z = sum(x²)
+backward(&z);
+println!("{:?}", x.grad().unwrap().to_vec()); // [4.0, 6.0]  (dz/dx = 2x)
 ```
 
 ## Why TensorCrab?
@@ -29,7 +32,7 @@ println!("{c}"); // [[19, 22], [43, 50]]
 | Component | Status |
 |---|---|
 | Tensor Engine | 🟢 Done |
-| Autograd | 🔴 Not started |
+| Autograd | 🟢 Done |
 | NN Layers | 🔴 Not started |
 | Optimizers | 🔴 Not started |
 | WASM | 🔴 Not started |

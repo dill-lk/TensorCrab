@@ -42,14 +42,14 @@ println!("{}", c); // [[19, 22], [43, 50]]
 ## Stage 2 — Autograd Engine
 **Goal:** Automatic differentiation via a dynamic computation graph.
 
-- [ ] `Variable` wrapper around `Tensor` that tracks gradients
-- [ ] Computation graph (DAG) — nodes and edges
-- [ ] Forward pass — execute ops and record graph
-- [ ] Backward pass — walk graph in reverse, apply chain rule
-- [ ] Gradient accumulation
-- [ ] `zero_grad()` to reset gradients
-- [ ] Support for: add, mul, matmul, relu, sigmoid, log, exp
-- [ ] Unit tests: verify gradients numerically
+- [x] `Variable` wrapper around `Tensor` that tracks gradients
+- [x] Computation graph (DAG) — nodes and edges
+- [x] Forward pass — execute ops and record graph
+- [x] Backward pass — walk graph in reverse, apply chain rule
+- [x] Gradient accumulation
+- [x] `zero_grad()` to reset gradients
+- [x] Support for: add, sub, mul, div, matmul, neg, relu, sigmoid, log, exp, sum
+- [x] Unit tests: verify gradients numerically
 
 ### Milestone
 ```rust
@@ -152,7 +152,8 @@ let output = model.forward(&input);
 
 ## Current Status
 
-🟡 **Stage 1 complete** — Tensor Engine implemented and tested. Starting Stage 2 (Autograd) next.
+🟢 **Stage 1 complete** — Tensor Engine implemented and tested.
+🟢 **Stage 2 complete** — Autograd Engine implemented with numerical gradient verification. Starting Stage 3 (NN Layers) next.
 
 ## Completion Tracker
 
@@ -161,7 +162,7 @@ let output = model.forward(&input);
 | Stage | Status | Last Updated By |
 |---|---|---|
 | Stage 1 — Tensor Engine | 🟢 Done | Claude |
-| Stage 2 — Autograd | 🔴 Not started | — |
+| Stage 2 — Autograd | 🟢 Done | Claude |
 | Stage 3 — NN Layers | 🔴 Not started | — |
 | Stage 4 — Optimizers | 🔴 Not started | — |
 | Stage 5 — WASM | 🔴 Not started | — |

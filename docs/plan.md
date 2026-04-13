@@ -14,9 +14,10 @@
 | Shape/Stride | `src/tensor/shape.rs` | 🟢 Done |
 | Tensor struct | `src/tensor/mod.rs` | 🟢 Done |
 | Tensor ops | `src/tensor/ops.rs` | 🟢 Done |
-| Variable | `src/autograd/variable.rs` | 🔴 Not created |
-| Compute graph | `src/autograd/graph.rs` | 🔴 Not created |
-| Backward pass | `src/autograd/backward.rs` | 🔴 Not created |
+| Variable | `src/autograd/variable.rs` | 🟢 Done |
+| Compute graph | `src/autograd/graph.rs` | 🟢 Done |
+| Backward pass | `src/autograd/engine.rs` | 🟢 Done |
+| Autograd ops | `src/autograd/ops.rs` | 🟢 Done |
 | Module trait | `src/nn/mod.rs` | 🔴 Not created |
 | Linear layer | `src/nn/linear.rs` | 🔴 Not created |
 | Activations | `src/nn/activations.rs` | 🔴 Not created |
