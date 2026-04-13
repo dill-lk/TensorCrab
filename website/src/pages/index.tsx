@@ -178,11 +178,16 @@ export default function Home(): ReactNode {
 
           <div className={styles.tableWrapper}>
             <table className={styles.comparisonTable}>
+              <colgroup>
+                <col className={styles.colFeature} />
+                <col className={styles.colPython} />
+                <col className={styles.colRust} />
+              </colgroup>
               <thead>
                 <tr>
-                  <th />
-                  <th>Python (PyTorch)</th>
-                  <th>🦀 TensorCrab</th>
+                  <th className={styles.thFeature}>Feature</th>
+                  <th className={styles.thPython}>Python (PyTorch)</th>
+                  <th className={styles.thRust}>🦀 TensorCrab</th>
                 </tr>
               </thead>
               <tbody>
