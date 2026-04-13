@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard};
 
+use crate::device::Device;
 use crate::tensor::Tensor;
 
 use super::graph::Node;
@@ -178,5 +179,35 @@ impl Variable {
                 .add(grad_to_add)
                 .expect("accumulate_grad: shape mismatch between existing grad and new grad"),
         });
+    }
+
+    /// Returns the device where this variable's tensor data resides.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// use tensor_crab::autograd::Variable;
+    /// use tensor_crab::device::Device;
+    ///
+    /// let x = Variable::new(Tensor::zeros(&[2]), false);
+    /// assert_eq!(x.device(), Device::Cpu);
+    /// ```
+    pub fn device(&self) -> Device {
+        self.data().device().clone()
+    }
+
+    /// Returns a new leaf [`Variable`] with its data moved to `device`.
+    ///
+    /// For [`Device::Cpu`] this clones the underlying tensor data.
+    /// For GPU devices, use `CudaTensor::from_cpu()` instead;
+    /// this method returns [`crate::error::TensorError::UnsupportedOperation`]
+    /// for GPU targets.
+    ///
+    /// # Errors
+    /// Returns [`crate::error::TensorError::UnsupportedOperation`] when
+    /// `device` is a GPU device.
+    pub fn to_device(&self, device: &Device) -> Result<Arc<Variable>, crate::error::TensorError> {
+        let new_data = self.data().to_device(device)?;
+        Ok(Variable::new(new_data, self.requires_grad))
     }
 }

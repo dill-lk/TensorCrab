@@ -45,6 +45,8 @@ fn link_cuda() {
     // (libcudart / cudart.lib).
     println!("cargo:rustc-link-lib=cuda");
     println!("cargo:rustc-link-lib=cudart");
+    // Link cuBLAS for GPU matrix multiplication.
+    println!("cargo:rustc-link-lib=cublas");
 }
 
 /// Returns the path to the CUDA Toolkit root directory.

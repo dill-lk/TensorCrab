@@ -422,3 +422,61 @@ extern "C" {
     /// Returns but does not clear the last runtime error.
     pub fn cudaPeekAtLastError() -> cudaError_t;
 }
+
+// ─── cuBLAS types and extern declarations ─────────────────────────────────────
+
+/// Opaque cuBLAS context handle.
+#[repr(C)]
+pub struct cublasContext {
+    _private: [u8; 0],
+}
+
+/// Pointer to an opaque [`cublasContext`].
+pub type cublasHandle_t = *mut cublasContext;
+
+/// Raw cuBLAS status code.
+pub type cublasStatus_t = c_uint;
+
+/// Matrix transposition option for cuBLAS operations.
+#[repr(u32)]
+#[allow(dead_code)]
+pub enum cublasOperation_t {
+    /// No transpose.
+    CUBLAS_OP_N = 0,
+    /// Transpose.
+    CUBLAS_OP_T = 1,
+    /// Conjugate transpose.
+    CUBLAS_OP_C = 2,
+}
+
+extern "C" {
+    /// Creates a cuBLAS library context handle.
+    pub fn cublasCreate_v2(handle: *mut cublasHandle_t) -> cublasStatus_t;
+
+    /// Destroys a cuBLAS library context handle and frees all its resources.
+    pub fn cublasDestroy_v2(handle: cublasHandle_t) -> cublasStatus_t;
+
+    /// Sets the cuBLAS library stream for asynchronous execution.
+    pub fn cublasSetStream_v2(handle: cublasHandle_t, stream: CUstream) -> cublasStatus_t;
+
+    /// Single-precision general matrix-matrix multiplication.
+    ///
+    /// Computes `C = alpha * op(A) * op(B) + beta * C`.
+    #[allow(clippy::too_many_arguments)]
+    pub fn cublasSgemm_v2(
+        handle: cublasHandle_t,
+        transa: cublasOperation_t,
+        transb: cublasOperation_t,
+        m: c_int,
+        n: c_int,
+        k: c_int,
+        alpha: *const f32,
+        A: CUdeviceptr,
+        lda: c_int,
+        B: CUdeviceptr,
+        ldb: c_int,
+        beta: *const f32,
+        C: CUdeviceptr,
+        ldc: c_int,
+    ) -> cublasStatus_t;
+}

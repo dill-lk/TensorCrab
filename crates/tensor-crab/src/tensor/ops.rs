@@ -1,5 +1,6 @@
 use std::fmt;
 
+use crate::device::Device;
 use crate::error::TensorError;
 
 use super::shape::Shape;
@@ -226,6 +227,7 @@ impl Tensor<f32> {
                 strides: new_strides,
             },
             offset: self.offset,
+            device: Device::Cpu,
         })
     }
 
@@ -258,6 +260,7 @@ impl Tensor<f32> {
             storage: contiguous.storage,
             shape: Shape::row_major(new_shape),
             offset: 0,
+            device: Device::Cpu,
         })
     }
 
