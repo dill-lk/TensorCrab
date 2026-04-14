@@ -1,6 +1,6 @@
 [package]
 name = "tensor-crab"
-version = "0.1.1"
+version = "0.0.4"
 edition = "2021"
 description = "Rust-native ML library. No Python. No GIL. Just speed."
 license = "Apache-2.0"
