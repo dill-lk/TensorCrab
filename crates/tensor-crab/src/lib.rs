@@ -89,7 +89,7 @@ pub use tensor::Tensor;
 pub mod prelude {
     pub use super::autograd::{backward, Variable};
     pub use super::device::Device;
-    pub use super::nn::{Module, Sequential};
+    pub use super::nn::{AvgPool2d, Conv2d, MaxPool2d, Module, Sequential};
     pub use super::optim::{Adam, AdamW, DataLoader, Optimizer, StepLR, SGD};
     pub use super::Tensor;
     pub use super::TensorError;

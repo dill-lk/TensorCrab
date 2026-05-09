@@ -51,6 +51,7 @@
 
 pub mod activations;
 pub mod batchnorm;
+pub mod conv;
 pub mod dropout;
 pub mod linear;
 pub mod loss;
@@ -58,6 +59,7 @@ pub mod sequential;
 
 pub use activations::{ReLU, Sigmoid, Softmax, Tanh};
 pub use batchnorm::BatchNorm1d;
+pub use conv::{AvgPool2d, Conv2d, MaxPool2d};
 pub use dropout::Dropout;
 pub use linear::Linear;
 pub use sequential::Sequential;

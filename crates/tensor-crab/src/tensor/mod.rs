@@ -658,4 +658,149 @@ mod tests {
         let indices: Vec<Vec<usize>> = IndexIterator::new(vec![0, 3]).collect();
         assert_eq!(indices.len(), 0);
     }
+
+    // ── slicing ───────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_slice_axis_1d() {
+        let a = Tensor::from_vec(vec![10.0_f32, 20.0, 30.0, 40.0, 50.0], &[5]);
+        let s = a.slice_axis(0, 1, 4).unwrap();
+        assert_eq!(s.shape(), &[3]);
+        assert_eq!(s.to_vec(), vec![20.0, 30.0, 40.0]);
+    }
+
+    #[test]
+    fn test_slice_axis_2d_rows() {
+        // Take rows 1..3 of a 3×2 matrix.
+        let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0], &[3, 2]);
+        let s = a.slice_axis(0, 1, 3).unwrap();
+        assert_eq!(s.shape(), &[2, 2]);
+        assert_eq!(s.to_vec(), vec![3.0, 4.0, 5.0, 6.0]);
+    }
+
+    #[test]
+    fn test_slice_axis_2d_cols() {
+        let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0], &[2, 3]);
+        let s = a.slice_axis(1, 0, 2).unwrap();
+        assert_eq!(s.shape(), &[2, 2]);
+        assert_eq!(s.to_vec(), vec![1.0, 2.0, 4.0, 5.0]);
+    }
+
+    #[test]
+    fn test_slice_axis_out_of_bounds() {
+        let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0], &[3]);
+        assert!(a.slice_axis(0, 2, 5).is_err());
+    }
+
+    #[test]
+    fn test_index_select() {
+        let a = Tensor::from_vec(vec![10.0_f32, 20.0, 30.0, 40.0], &[4]);
+        let s = a.index_select(0, &[0, 2, 3]).unwrap();
+        assert_eq!(s.to_vec(), vec![10.0, 30.0, 40.0]);
+    }
+
+    // ── argmax / argmin ───────────────────────────────────────────────────
+
+    #[test]
+    fn test_argmax_flat() {
+        let a = Tensor::from_vec(vec![3.0_f32, 1.0, 4.0, 1.0, 5.0], &[5]);
+        assert_eq!(a.argmax(), 4);
+    }
+
+    #[test]
+    fn test_argmin_flat() {
+        let a = Tensor::from_vec(vec![3.0_f32, 1.0, 4.0, 0.5, 5.0], &[5]);
+        assert_eq!(a.argmin(), 3);
+    }
+
+    #[test]
+    fn test_argmax_axis() {
+        // [[3, 1, 4], [1, 5, 9]] → argmax along axis 1 = [2, 2]
+        let a = Tensor::from_vec(vec![3.0_f32, 1.0, 4.0, 1.0, 5.0, 9.0], &[2, 3]);
+        let idx = a.argmax_axis(1).unwrap();
+        assert_eq!(idx.shape(), &[2, 1]);
+        assert_eq!(idx.to_vec(), vec![2.0, 2.0]);
+    }
+
+    // ── abs / pow ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_abs() {
+        let a = Tensor::from_vec(vec![-3.0_f32, 0.0, 4.0, -1.5], &[4]);
+        assert_eq!(a.abs().to_vec(), vec![3.0, 0.0, 4.0, 1.5]);
+    }
+
+    #[test]
+    fn test_pow() {
+        let a = Tensor::from_vec(vec![2.0_f32, 3.0, 4.0], &[3]);
+        let b = a.pow(2.0);
+        assert_abs_diff_eq!(
+            b.to_vec().as_slice(),
+            [4.0_f32, 9.0, 16.0].as_slice(),
+            epsilon = 1e-5
+        );
+    }
+
+    #[test]
+    fn test_sub_scalar() {
+        let a = Tensor::from_vec(vec![5.0_f32, 10.0], &[2]);
+        assert_eq!(a.sub_scalar(3.0).to_vec(), vec![2.0, 7.0]);
+    }
+
+    #[test]
+    fn test_div_scalar() {
+        let a = Tensor::from_vec(vec![6.0_f32, 9.0], &[2]);
+        assert_abs_diff_eq!(
+            a.div_scalar(3.0).to_vec().as_slice(),
+            [2.0_f32, 3.0].as_slice(),
+            epsilon = 1e-5
+        );
+    }
+
+    // ── mean_axis ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_mean_axis() {
+        let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0], &[2, 3]);
+        let m = a.mean_axis(1).unwrap();
+        assert_eq!(m.shape(), &[2, 1]);
+        assert_abs_diff_eq!(m.to_vec()[0], 2.0_f32, epsilon = 1e-6);
+        assert_abs_diff_eq!(m.to_vec()[1], 5.0_f32, epsilon = 1e-6);
+    }
+
+    // ── cat / stack ───────────────────────────────────────────────────────
+
+    #[test]
+    fn test_cat_1d() {
+        let a = Tensor::from_vec(vec![1.0_f32, 2.0], &[2]);
+        let b = Tensor::from_vec(vec![3.0_f32, 4.0, 5.0], &[3]);
+        let c = Tensor::cat(&[a, b], 0).unwrap();
+        assert_eq!(c.to_vec(), vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+    }
+
+    #[test]
+    fn test_cat_2d_rows() {
+        let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0, 4.0], &[2, 2]);
+        let b = Tensor::from_vec(vec![5.0_f32, 6.0], &[1, 2]);
+        let c = Tensor::cat(&[a, b], 0).unwrap();
+        assert_eq!(c.shape(), &[3, 2]);
+        assert_eq!(c.to_vec(), vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+    }
+
+    #[test]
+    fn test_stack_1d() {
+        let a = Tensor::from_vec(vec![1.0_f32, 2.0], &[2]);
+        let b = Tensor::from_vec(vec![3.0_f32, 4.0], &[2]);
+        let c = Tensor::stack(&[a, b], 0).unwrap();
+        assert_eq!(c.shape(), &[2, 2]);
+        assert_eq!(c.to_vec(), vec![1.0, 2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn test_stack_2d_new_axis_at_end() {
+        let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0, 4.0], &[2, 2]);
+        let b = Tensor::from_vec(vec![5.0_f32, 6.0, 7.0, 8.0], &[2, 2]);
+        let c = Tensor::stack(&[a, b], 2).unwrap();
+        assert_eq!(c.shape(), &[2, 2, 2]);
+    }
 }
