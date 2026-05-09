@@ -25,6 +25,7 @@
 | Loss functions | `src/nn/loss.rs` | 🟢 Done |
 | BatchNorm1d | `src/nn/batchnorm.rs` | 🟢 Done |
 | Dropout | `src/nn/dropout.rs` | 🟢 Done |
+| Conv2d / MaxPool2d / AvgPool2d | `src/nn/conv.rs` | 🟢 Done |
 | Optimizer trait | `src/optim/mod.rs` | 🟢 Done |
 | SGD | `src/optim/sgd.rs` | 🟢 Done |
 | Adam | `src/optim/adam.rs` | 🟢 Done |
@@ -42,6 +43,7 @@
 | cuBLAS GEMM | `src/cuda/cublas.rs` | 🟢 Done |
 | GPU Memory Pool | `src/cuda/pool.rs` | 🟢 Done |
 | F16 mixed precision | `src/cuda/half.rs` | 🟢 Done |
+| Examples | `examples/xor.rs`, `examples/linear_regression.rs` | 🟢 Done |
 
 ---
 

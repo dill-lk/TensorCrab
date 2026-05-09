@@ -320,6 +320,82 @@ impl BackwardFn for AddScalarBackward {
     }
 }
 
+/// `AbsBackward`: dL/dx = grad * sign(x).
+///
+/// Where sign(x) = 1 if x > 0, -1 if x < 0, 0 if x == 0.
+struct AbsBackward {
+    input_data: Tensor,
+}
+
+impl BackwardFn for AbsBackward {
+    fn backward(&self, grad_output: &Tensor) -> Vec<Tensor> {
+        let sign: Vec<f32> = self
+            .input_data
+            .to_vec()
+            .into_iter()
+            .map(|v| {
+                if v > 0.0 {
+                    1.0
+                } else if v < 0.0 {
+                    -1.0
+                } else {
+                    0.0
+                }
+            })
+            .collect();
+        let sign_tensor = Tensor::from_vec(sign, self.input_data.shape());
+        vec![grad_output
+            .mul(&sign_tensor)
+            .expect("AbsBackward: grad * sign(x) failed")]
+    }
+}
+
+/// `PowBackward`: dL/dx = grad * n * x^(n-1).
+struct PowBackward {
+    input_data: Tensor,
+    exponent: f32,
+}
+
+impl BackwardFn for PowBackward {
+    fn backward(&self, grad_output: &Tensor) -> Vec<Tensor> {
+        // grad * n * x^(n-1)
+        let x_pow_n_minus_1 = self.input_data.pow(self.exponent - 1.0);
+        let coeff = x_pow_n_minus_1.mul_scalar(self.exponent);
+        vec![grad_output
+            .mul(&coeff)
+            .expect("PowBackward: grad * n * x^(n-1) failed")]
+    }
+}
+
+/// `MeanBackward`: dL/dx = grad / numel, broadcast back to input shape.
+struct MeanBackward {
+    input_shape: Vec<usize>,
+}
+
+impl BackwardFn for MeanBackward {
+    fn backward(&self, grad_output: &Tensor) -> Vec<Tensor> {
+        let n: usize = self.input_shape.iter().product();
+        #[allow(clippy::cast_precision_loss)]
+        let scaled = grad_output.mul_scalar(1.0 / n as f32);
+        vec![scaled.expand_to(&self.input_shape)]
+    }
+}
+
+/// `MeanAxisBackward`: dL/dx = grad / axis_len, broadcast back to input shape.
+struct MeanAxisBackward {
+    input_shape: Vec<usize>,
+    axis: usize,
+}
+
+impl BackwardFn for MeanAxisBackward {
+    fn backward(&self, grad_output: &Tensor) -> Vec<Tensor> {
+        #[allow(clippy::cast_precision_loss)]
+        let axis_len = self.input_shape[self.axis] as f32;
+        let scaled = grad_output.mul_scalar(1.0 / axis_len);
+        vec![scaled.broadcast_to(&self.input_shape)]
+    }
+}
+
 // ─── Variable ops ─────────────────────────────────────────────────────────────
 
 impl Variable {
@@ -563,5 +639,148 @@ impl Variable {
     pub fn var_add_scalar(self: &Arc<Self>, scalar: f32) -> Arc<Self> {
         let output = self.data().add_scalar(scalar);
         make_output(output, vec![Arc::clone(self)], Box::new(AddScalarBackward))
+    }
+
+    /// Absolute value: `|x|`.
+    ///
+    /// The backward pass multiplies the upstream gradient by `sign(x)`.
+    pub fn var_abs(self: &Arc<Self>) -> Arc<Self> {
+        let input_data = self.data().clone();
+        let output = self.data().abs();
+        make_output(
+            output,
+            vec![Arc::clone(self)],
+            Box::new(AbsBackward { input_data }),
+        )
+    }
+
+    /// Element-wise power: `xⁿ`.
+    ///
+    /// The backward pass applies the chain rule: `dL/dx = grad * n * x^(n−1)`.
+    pub fn var_pow(self: &Arc<Self>, exponent: f32) -> Arc<Self> {
+        let input_data = self.data().clone();
+        let output = self.data().pow(exponent);
+        make_output(
+            output,
+            vec![Arc::clone(self)],
+            Box::new(PowBackward {
+                input_data,
+                exponent,
+            }),
+        )
+    }
+
+    /// Mean of all elements: scalar output of shape `[1]`.
+    ///
+    /// The backward pass divides the upstream gradient by `numel` and
+    /// broadcasts it back to the input shape.
+    pub fn var_mean(self: &Arc<Self>) -> Arc<Self> {
+        let input_shape = self.data().shape().to_vec();
+        let output = self.data().mean();
+        make_output(
+            output,
+            vec![Arc::clone(self)],
+            Box::new(MeanBackward { input_shape }),
+        )
+    }
+
+    /// Mean along `axis`, keeping that axis with size 1 in the output.
+    ///
+    /// # Panics
+    /// Panics if `axis ≥ self.ndim()`.
+    pub fn var_mean_axis(self: &Arc<Self>, axis: usize) -> Arc<Self> {
+        let input_shape = self.data().shape().to_vec();
+        let output = self
+            .data()
+            .mean_axis(axis)
+            .expect("Variable::var_mean_axis: axis out of bounds");
+        make_output(
+            output,
+            vec![Arc::clone(self)],
+            Box::new(MeanAxisBackward { input_shape, axis }),
+        )
+    }
+}
+
+// ─── Tests ───────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::autograd::backward;
+    use approx::assert_abs_diff_eq;
+
+    #[test]
+    fn test_var_abs_positive() {
+        let x = Variable::new(Tensor::from_vec(vec![3.0_f32, -2.0, 0.0], &[3]), true);
+        let y = x.var_abs().var_sum();
+        backward(&y);
+        let g = x.grad().unwrap();
+        // sign([3, -2, 0]) = [1, -1, 0]
+        assert_abs_diff_eq!(
+            g.to_vec().as_slice(),
+            [1.0_f32, -1.0, 0.0].as_slice(),
+            epsilon = 1e-5
+        );
+    }
+
+    #[test]
+    fn test_var_pow_square() {
+        // z = sum(x^2), dz/dx = 2x
+        let x = Variable::new(Tensor::from_vec(vec![2.0_f32, 3.0], &[2]), true);
+        let y = x.var_pow(2.0).var_sum();
+        backward(&y);
+        let g = x.grad().unwrap();
+        assert_abs_diff_eq!(
+            g.to_vec().as_slice(),
+            [4.0_f32, 6.0].as_slice(),
+            epsilon = 1e-5
+        );
+    }
+
+    #[test]
+    fn test_var_pow_cube() {
+        // z = sum(x^3), dz/dx = 3x^2
+        let x = Variable::new(Tensor::from_vec(vec![2.0_f32], &[1]), true);
+        let y = x.var_pow(3.0).var_sum();
+        backward(&y);
+        let g = x.grad().unwrap();
+        // 3 * 2^2 = 12
+        assert_abs_diff_eq!(g.to_vec()[0], 12.0_f32, epsilon = 1e-4);
+    }
+
+    #[test]
+    fn test_var_mean() {
+        // z = mean([a, b]) = (a+b)/2, dz/da = 0.5, dz/db = 0.5
+        let x = Variable::new(Tensor::from_vec(vec![4.0_f32, 6.0], &[2]), true);
+        let y = x.var_mean();
+        backward(&y);
+        let g = x.grad().unwrap();
+        assert_abs_diff_eq!(
+            g.to_vec().as_slice(),
+            [0.5_f32, 0.5].as_slice(),
+            epsilon = 1e-5
+        );
+        assert_abs_diff_eq!(y.data().to_vec()[0], 5.0_f32, epsilon = 1e-5);
+    }
+
+    #[test]
+    fn test_var_mean_axis() {
+        // [[1, 2, 3], [4, 5, 6]] → mean over axis 1 → [[2], [5]]
+        // sum of means = 7, dL/d(each element in row) = 1/3
+        let x = Variable::new(
+            Tensor::from_vec(vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0], &[2, 3]),
+            true,
+        );
+        let means = x.var_mean_axis(1); // [[2.0], [5.0]]
+        let loss = means.var_sum(); // 7.0
+        backward(&loss);
+        let g = x.grad().unwrap();
+        // Each element contributes 1/3 to its row's mean.
+        assert_abs_diff_eq!(
+            g.to_vec().as_slice(),
+            [1.0_f32 / 3.0; 6].as_slice(),
+            epsilon = 1e-5
+        );
     }
 }

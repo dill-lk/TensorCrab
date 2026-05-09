@@ -110,6 +110,9 @@ let grad = x.grad().unwrap();
 | `BatchNorm1d` | Batch normalisation with learnable γ and β |
 | `Dropout` | Inverted dropout with configurable probability |
 | `Sequential` | Chain layers into a model |
+| `Conv2d` | 2-D cross-correlation with Kaiming init + autograd |
+| `MaxPool2d` | 2-D max pooling with backward pass |
+| `AvgPool2d` | 2-D average pooling with backward pass |
 
 ```rust
 use tensor_crab::nn::{Module, Sequential, Linear, ReLU, Dropout, BatchNorm1d};
@@ -121,6 +124,21 @@ let model = Sequential::new(vec![
     Box::new(Dropout::new(0.3)),
     Box::new(Linear::new(256, 10)),
 ]);
+```
+
+```rust
+// Convolutional network block
+use tensor_crab::nn::{Module, Sequential, Conv2d, MaxPool2d, ReLU};
+
+let conv_block = Sequential::new(vec![
+    Box::new(Conv2d::new(1, 16, 3, 1, 1)),  // same-padding
+    Box::new(ReLU::new()),
+    Box::new(MaxPool2d::new(2, 2)),           // halve spatial dims
+]);
+
+let x = Variable::new(Tensor::randn_seeded(&[4, 1, 28, 28], 0), false);
+let y = conv_block.forward(&x);
+// y.data().shape() == [4, 16, 14, 14]
 ```
 
 ### 📉 Loss Functions
@@ -297,7 +315,7 @@ TensorCrab is the right choice when you need ML as part of a larger Rust applica
 | 🚀 Optimizers | 🟢 Done |
 | 🌐 WebAssembly | 🔴 Planned |
 | ⚡ CUDA / GPU | 🟢 Done |
-| 🌍 Ecosystem | 🔴 Planned |
+| 🌍 Ecosystem | 🟡 In Progress |
 
 ---
 

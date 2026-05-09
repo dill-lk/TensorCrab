@@ -660,6 +660,419 @@ impl Tensor<f32> {
     }
 }
 
+// ─── Index / slicing ops ──────────────────────────────────────────────────────
+
+impl Tensor<f32> {
+    /// Slices the tensor along `axis` extracting elements `start..end`
+    /// (exclusive end, following Rust range conventions).
+    ///
+    /// The output has the same number of dimensions as `self`; only the size
+    /// along `axis` changes to `end − start`.
+    ///
+    /// # Errors
+    /// - [`TensorError::AxisError`] if `axis ≥ self.ndim()`.
+    /// - [`TensorError::IndexError`] if `start` or `end` are out of bounds, or
+    ///   `start ≥ end`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0, 4.0, 5.0], &[5]);
+    /// let s = a.slice_axis(0, 1, 4).unwrap(); // [2, 3, 4]
+    /// assert_eq!(s.to_vec(), vec![2.0, 3.0, 4.0]);
+    /// ```
+    pub fn slice_axis(
+        &self,
+        axis: usize,
+        start: usize,
+        end: usize,
+    ) -> Result<Tensor<f32>, TensorError> {
+        let ndim = self.shape.ndim();
+        if axis >= ndim {
+            return Err(TensorError::AxisError { axis, ndim });
+        }
+        let axis_len = self.shape.dims[axis];
+        if end > axis_len || start >= end {
+            return Err(TensorError::IndexError {
+                index: vec![start, end],
+                shape: self.shape.dims.clone(),
+            });
+        }
+
+        let mut out_shape = self.shape.dims.clone();
+        out_shape[axis] = end - start;
+        let out_numel: usize = out_shape.iter().product();
+        let mut data = Vec::with_capacity(out_numel);
+
+        for idx in super::IndexIterator::new(out_shape.clone()) {
+            let mut src_idx = idx.clone();
+            src_idx[axis] += start;
+            data.push(self.get_at(&src_idx));
+        }
+
+        Ok(Tensor::from_vec(data, &out_shape))
+    }
+
+    /// Selects elements along `axis` at the positions given in `indices`.
+    ///
+    /// The output shape is the same as `self` except that the axis dimension
+    /// equals `indices.len()`.
+    ///
+    /// # Errors
+    /// - [`TensorError::AxisError`] if `axis ≥ self.ndim()`.
+    /// - [`TensorError::IndexError`] if any index is out of bounds.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![10.0_f32, 20.0, 30.0, 40.0], &[4]);
+    /// let s = a.index_select(0, &[0, 2, 3]).unwrap();
+    /// assert_eq!(s.to_vec(), vec![10.0, 30.0, 40.0]);
+    /// ```
+    pub fn index_select(&self, axis: usize, indices: &[usize]) -> Result<Tensor<f32>, TensorError> {
+        let ndim = self.shape.ndim();
+        if axis >= ndim {
+            return Err(TensorError::AxisError { axis, ndim });
+        }
+        let axis_len = self.shape.dims[axis];
+        for &i in indices {
+            if i >= axis_len {
+                return Err(TensorError::IndexError {
+                    index: vec![i],
+                    shape: self.shape.dims.clone(),
+                });
+            }
+        }
+
+        let mut out_shape = self.shape.dims.clone();
+        out_shape[axis] = indices.len();
+        let out_numel: usize = out_shape.iter().product();
+        let mut data = Vec::with_capacity(out_numel);
+
+        for idx in super::IndexIterator::new(out_shape.clone()) {
+            let mut src_idx = idx.clone();
+            src_idx[axis] = indices[idx[axis]];
+            data.push(self.get_at(&src_idx));
+        }
+
+        Ok(Tensor::from_vec(data, &out_shape))
+    }
+}
+
+// ─── Argmax / argmin ──────────────────────────────────────────────────────────
+
+impl Tensor<f32> {
+    /// Returns the flat index of the maximum element.
+    ///
+    /// For ties, the first occurrence wins.  Returns `0` for empty tensors.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![3.0_f32, 1.0, 4.0, 1.0], &[4]);
+    /// assert_eq!(a.argmax(), 2);
+    /// ```
+    pub fn argmax(&self) -> usize {
+        let v = self.to_vec();
+        if v.is_empty() {
+            return 0;
+        }
+        v.iter()
+            .enumerate()
+            .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+            .map(|(i, _)| i)
+            .unwrap_or(0)
+    }
+
+    /// Returns the flat index of the minimum element.
+    ///
+    /// For ties, the first occurrence wins.  Returns `0` for empty tensors.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![3.0_f32, 1.0, 4.0, 1.0], &[4]);
+    /// assert_eq!(a.argmin(), 1);
+    /// ```
+    pub fn argmin(&self) -> usize {
+        let v = self.to_vec();
+        if v.is_empty() {
+            return 0;
+        }
+        v.iter()
+            .enumerate()
+            .min_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+            .map(|(i, _)| i)
+            .unwrap_or(0)
+    }
+
+    /// Returns the index of the maximum element along `axis`, keeping that
+    /// axis in the output with size 1.
+    ///
+    /// # Errors
+    /// Returns [`TensorError::AxisError`] if `axis ≥ self.ndim()`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![3.0_f32, 1.0, 4.0, 1.0, 5.0, 9.0], &[2, 3]);
+    /// let idx = a.argmax_axis(1).unwrap();
+    /// assert_eq!(idx.shape(), &[2, 1]);
+    /// assert_eq!(idx.to_vec(), vec![2.0, 2.0]); // col 2 is max in each row
+    /// ```
+    pub fn argmax_axis(&self, axis: usize) -> Result<Tensor<f32>, TensorError> {
+        let ndim = self.shape.ndim();
+        if axis >= ndim {
+            return Err(TensorError::AxisError { axis, ndim });
+        }
+        let axis_len = self.shape.dims[axis];
+        let mut out_shape = self.shape.dims.clone();
+        out_shape[axis] = 1;
+        let out_numel: usize = out_shape.iter().product();
+        let mut data = vec![0.0_f32; out_numel];
+        let out_shape_obj = crate::tensor::shape::Shape::row_major(&out_shape);
+
+        // For each output position, find the index of the max across the axis.
+        for out_idx in super::IndexIterator::new(out_shape.clone()) {
+            let flat_out = out_shape_obj.flat_index(&out_idx);
+            let mut best_val = f32::NEG_INFINITY;
+            let mut best_i = 0usize;
+            for i in 0..axis_len {
+                let mut src_idx = out_idx.clone();
+                src_idx[axis] = i;
+                let v = self.get_at(&src_idx);
+                if v > best_val {
+                    best_val = v;
+                    best_i = i;
+                }
+            }
+            #[allow(clippy::cast_precision_loss)]
+            {
+                data[flat_out] = best_i as f32;
+            }
+        }
+
+        Ok(Tensor::from_vec(data, &out_shape))
+    }
+}
+
+// ─── Element-wise unary ops ───────────────────────────────────────────────────
+
+impl Tensor<f32> {
+    /// Applies the absolute value element-wise: `|x|`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![-3.0_f32, 0.0, 4.0], &[3]);
+    /// assert_eq!(a.abs().to_vec(), vec![3.0, 0.0, 4.0]);
+    /// ```
+    pub fn abs(&self) -> Tensor<f32> {
+        let data: Vec<f32> = self.to_vec().into_iter().map(|v| v.abs()).collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Raises every element to the power `exponent`: `xⁿ`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![2.0_f32, 3.0], &[2]);
+    /// assert_eq!(a.pow(3.0).to_vec(), vec![8.0, 27.0]);
+    /// ```
+    pub fn pow(&self, exponent: f32) -> Tensor<f32> {
+        let data: Vec<f32> = self
+            .to_vec()
+            .into_iter()
+            .map(|v| v.powf(exponent))
+            .collect();
+        Tensor::from_vec(data, &self.shape.dims)
+    }
+
+    /// Subtracts a scalar from every element: `x − s`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![5.0_f32, 10.0], &[2]);
+    /// assert_eq!(a.sub_scalar(3.0).to_vec(), vec![2.0, 7.0]);
+    /// ```
+    pub fn sub_scalar(&self, scalar: f32) -> Tensor<f32> {
+        self.add_scalar(-scalar)
+    }
+
+    /// Divides every element by a scalar: `x / s`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![6.0_f32, 9.0], &[2]);
+    /// assert_eq!(a.div_scalar(3.0).to_vec(), vec![2.0, 3.0]);
+    /// ```
+    pub fn div_scalar(&self, scalar: f32) -> Tensor<f32> {
+        self.mul_scalar(1.0 / scalar)
+    }
+}
+
+// ─── Reduction along axis ─────────────────────────────────────────────────────
+
+impl Tensor<f32> {
+    /// Computes the mean along `axis`, keeping that axis in the output with
+    /// size 1.
+    ///
+    /// # Errors
+    /// Returns [`TensorError::AxisError`] if `axis ≥ self.ndim()`.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0], &[2, 3]);
+    /// let m = a.mean_axis(1).unwrap();
+    /// assert_eq!(m.shape(), &[2, 1]);
+    /// assert!((m.to_vec()[0] - 2.0).abs() < 1e-6); // mean of [1, 2, 3]
+    /// assert!((m.to_vec()[1] - 5.0).abs() < 1e-6); // mean of [4, 5, 6]
+    /// ```
+    pub fn mean_axis(&self, axis: usize) -> Result<Tensor<f32>, TensorError> {
+        let ndim = self.shape.ndim();
+        if axis >= ndim {
+            return Err(TensorError::AxisError { axis, ndim });
+        }
+        #[allow(clippy::cast_precision_loss)]
+        let n = self.shape.dims[axis] as f32;
+        let sum = self.sum_axis_keepdim(axis);
+        Ok(sum.mul_scalar(1.0 / n))
+    }
+}
+
+// ─── Concatenation / stacking ─────────────────────────────────────────────────
+
+impl Tensor<f32> {
+    /// Concatenates a slice of tensors along `axis`.
+    ///
+    /// All tensors must have the same number of dimensions and the same size
+    /// on every axis *except* `axis`.
+    ///
+    /// # Errors
+    /// - [`TensorError::AxisError`] if `axis` is out of bounds or `tensors` is empty.
+    /// - [`TensorError::ShapeMismatch`] if non-axis dimensions differ.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![1.0_f32, 2.0], &[2]);
+    /// let b = Tensor::from_vec(vec![3.0_f32, 4.0, 5.0], &[3]);
+    /// let c = Tensor::cat(&[a, b], 0).unwrap();
+    /// assert_eq!(c.to_vec(), vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+    /// ```
+    pub fn cat(tensors: &[Tensor<f32>], axis: usize) -> Result<Tensor<f32>, TensorError> {
+        if tensors.is_empty() {
+            return Err(TensorError::AxisError { axis, ndim: 0 });
+        }
+        let ndim = tensors[0].shape.ndim();
+        if axis >= ndim {
+            return Err(TensorError::AxisError { axis, ndim });
+        }
+
+        // Validate that all non-axis dimensions match.
+        let ref_shape = &tensors[0].shape.dims;
+        for t in tensors.iter().skip(1) {
+            for (dim, (&r, &s)) in ref_shape.iter().zip(t.shape.dims.iter()).enumerate() {
+                if dim != axis && r != s {
+                    return Err(TensorError::ShapeMismatch {
+                        expected: ref_shape.clone(),
+                        got: t.shape.dims.clone(),
+                    });
+                }
+            }
+        }
+
+        // Build output shape.
+        let mut out_shape = ref_shape.clone();
+        out_shape[axis] = tensors.iter().map(|t| t.shape.dims[axis]).sum();
+
+        let out_numel: usize = out_shape.iter().product();
+        let mut data = Vec::with_capacity(out_numel);
+
+        // Iterate output indices and pull from the right source tensor.
+        for idx in super::IndexIterator::new(out_shape.clone()) {
+            // Find which tensor this axis index falls in.
+            let mut offset = 0usize;
+            let mut src_tensor = &tensors[0];
+            let mut src_axis_idx = idx[axis];
+            for t in tensors.iter() {
+                let len = t.shape.dims[axis];
+                if src_axis_idx < len {
+                    src_tensor = t;
+                    break;
+                }
+                src_axis_idx -= len;
+                offset += len;
+                let _ = offset; // used implicitly via src_axis_idx
+            }
+            let mut src_idx = idx.clone();
+            src_idx[axis] = src_axis_idx;
+            data.push(src_tensor.get_at(&src_idx));
+        }
+
+        Ok(Tensor::from_vec(data, &out_shape))
+    }
+
+    /// Stacks a slice of tensors along a **new** `axis`.
+    ///
+    /// All tensors must have the same shape.  The output has one more dimension
+    /// than the inputs, with the new axis of size `tensors.len()`.
+    ///
+    /// # Errors
+    /// - [`TensorError::AxisError`] if `axis > self.ndim()` (can be equal,
+    ///   which appends a trailing axis).
+    /// - [`TensorError::ShapeMismatch`] if tensors have different shapes.
+    ///
+    /// # Example
+    /// ```
+    /// use tensor_crab::tensor::Tensor;
+    /// let a = Tensor::from_vec(vec![1.0_f32, 2.0], &[2]);
+    /// let b = Tensor::from_vec(vec![3.0_f32, 4.0], &[2]);
+    /// let c = Tensor::stack(&[a, b], 0).unwrap();
+    /// assert_eq!(c.shape(), &[2, 2]);
+    /// assert_eq!(c.to_vec(), vec![1.0, 2.0, 3.0, 4.0]);
+    /// ```
+    pub fn stack(tensors: &[Tensor<f32>], axis: usize) -> Result<Tensor<f32>, TensorError> {
+        if tensors.is_empty() {
+            return Err(TensorError::AxisError { axis, ndim: 0 });
+        }
+        let ref_shape = tensors[0].shape.dims.clone();
+        let ndim = ref_shape.len();
+        // axis can be 0..=ndim (insert before existing dim or at the end).
+        if axis > ndim {
+            return Err(TensorError::AxisError { axis, ndim });
+        }
+        for t in tensors.iter().skip(1) {
+            if t.shape.dims != ref_shape {
+                return Err(TensorError::ShapeMismatch {
+                    expected: ref_shape.clone(),
+                    got: t.shape.dims.clone(),
+                });
+            }
+        }
+
+        // Build output shape by inserting tensors.len() at `axis`.
+        let mut out_shape = ref_shape.clone();
+        out_shape.insert(axis, tensors.len());
+
+        let out_numel: usize = out_shape.iter().product();
+        let mut data = Vec::with_capacity(out_numel);
+
+        for idx in super::IndexIterator::new(out_shape.clone()) {
+            let tensor_idx = idx[axis]; // which tensor
+            let mut src_idx = idx.clone();
+            src_idx.remove(axis); // drop the stacking axis
+            data.push(tensors[tensor_idx].get_at(&src_idx));
+        }
+
+        Ok(Tensor::from_vec(data, &out_shape))
+    }
+}
+
 // ─── Display ──────────────────────────────────────────────────────────────────
 
 impl fmt::Display for Tensor<f32> {
